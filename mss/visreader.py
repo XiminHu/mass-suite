@@ -315,7 +315,9 @@ def peak_pick(mzml_scans, input_mz, error, peak_base = 5000, thr = 0.02, min_d =
                 if len(result_dict) == 0:
                     result_dict.update({index : [l_range, h_range, integration_result]})
                 elif integration_result != list(result_dict.values())[-1][2]: #Compare with previous item
-                    result_dict.update({index : [l_range, h_range, integration_result]})
+                    s_window = abs(index - list(result_dict.keys())[-1])
+                    if s_window > min_scan_window:
+                        result_dict.update({index : [l_range, h_range, integration_result]})
                 
         #Filtering:
         #1. delete results that l_range/h_range within 5 scans
