@@ -16,6 +16,8 @@ import pandas as pd
 import peakutils
 from peakutils.plot import plot as pplot
 import webbrowser
+import glob
+from pathlib import Path 
 
 #TIC plot
 def tic_plot(mzml_scans, interactive=True):

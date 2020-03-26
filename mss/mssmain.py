@@ -15,6 +15,9 @@ import pandas as pd
 
 import peakutils
 from peakutils.plot import plot as pplot
+import webbrowser
+import glob
+from pathlib import Path 
 
 
 def get_scans(path, ms_lv = 1):
@@ -220,7 +223,7 @@ def batch_scans(path, remove_noise = True, thres_noise = 1000):
         if remove_noise == True:
             noise_removal(scan, thres_noise)
         scans.append(scan)
-        file_list.append([Path(file).name])
+        file_list.append(Path(file).name)
     print(file_list)
     print('Batch read finished!')
     
