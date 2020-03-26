@@ -209,3 +209,47 @@ def peak_list(mzml_scans, mz_error, mzmin = 0, mzmax=1000, peak_base = 0.005, th
     print('Dataframe created!')
     
     return d_result
+
+
+def batch_scans(path, remove_noise = True, thres_noise = 1000):
+    all_files = glob.glob(path + "/*.mzML")
+    scans = []
+    file_list = []
+    for file in tqdm(all_files):
+        scan = get_scans(file)
+        if remove_noise == True:
+            noise_removal(scan, thres_noise)
+        scans.append(scan)
+        file_list.append([Path(file).name])
+    print(file_list)
+    print('Batch read finished!')
+    
+    return scans, file_list
+
+
+def batch_peak(batch_input, source_list, mz, error):
+    rt_max = []
+    rt_start = []
+    rt_end = []
+    peak_area = []
+    source = []
+    for i, scans in enumerate(batch_input):
+        rt = []
+        result_dict = peak_pick(scans, mz, error)
+        for scan in scans:
+            rt.append(scan.scan_time[0])
+        for index in result_dict:
+            rt_max.append(round(rt[index], 2))
+            rt_start.append(round(rt[list(result_dict.values())[0][0]], 2))
+            rt_end.append(round(rt[list(result_dict.values())[0][1]], 2))
+            peak_area.append(round(result_dict[index][2], 4))
+            source.append(source_list[i])
+    result_dict = {'rt_max' : rt_max,
+                   'rt_start' : rt_start,
+                   'rt_end' : rt_end,
+                   'peak_area' : peak_area,
+                   'source' : source
+                  }
+    d_result = pd.DataFrame(result_dict)
+                
+    return d_result
