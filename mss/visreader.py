@@ -15,29 +15,7 @@ import pandas as pd
 
 import peakutils
 from peakutils.plot import plot as pplot
-
-
-def get_scans(path, ms_lv = 1):
-    run = pymzml.run.Reader(path)
-    scans = []
-    for scan in run:
-        if scan.ms_level == ms_lv:
-            scans.append(scan)
-    return scans
-
-
-#Noise removal
-def noise_removal(mzml_scans, int_thres = 5000):
-    '''
-    the output will overwrite the original mzml file
-    '''
-    for scan in mzml_scans:
-        drop_index = np.argwhere(scan.i <= int_thres)
-        scan.i = np.delete(scan.i, drop_index)
-        scan.mz = np.delete(scan.mz, drop_index)
-    
-    return
-
+import webbrowser
 
 #TIC plot
 def tic_plot(mzml_scans, interactive=True):
@@ -58,11 +36,15 @@ def tic_plot(mzml_scans, interactive=True):
             template = 'simple_white',
             width = 1000,
             height = 600,
-            xaxis = {'title':'Retention Time (min)'},
+            xaxis = dict(title = 'Retention Time (min)',
+                        rangeslider=dict(
+            visible = True
+        )),
             yaxis = dict(
                 showexponent = 'all',
                 exponentformat = 'e',
-                title = 'Intensity'))
+                title = 'Intensity',
+            ))
 
         fig.show()
     
@@ -94,6 +76,8 @@ def ms_plot(mzml_scans, time, interactive=False):
                         hovertemplate =
                         'Int: %{y}'+
                         '<br>m/z: %{x}<br>')])
+        fig.update_traces(marker_color='rgb(158,202,225)', marker_line_color='rgb(0,0,0)',
+                  marker_line_width=0.5, opacity=1)
         fig.update_layout(
                 title_text=str(round(rt, 3)) + ' min MS1 spectrum, input '+ str(time) + ' min',
                 template = 'simple_white',
@@ -180,18 +164,21 @@ def formula_mass(input_formula, mode = 'pos'):
     return mol_weight
 
 
-def ms_chromatogram(mzml_scans, input_mz, error, smooth=False, mode='pos', interactive=True):
+def ms_chromatogram(mzml_scans, input_value, error, smooth=False, mode='pos', interactive=True, search=False, source='pubchem'):
     '''
     Interactive chromatogram for selected m/z
+    search is now only available on chemspider and pubchem
     '''
-    if type(input_mz) == float:
-        pass
-    elif type(input_mz) == int:
-        pass
-    elif type(input_mz) == str:
-        input_mz = formula_mass(input_mz, mode)
+    if type(input_value) == float:
+        input_mz = input_value
+    elif type(input_value) == int:
+        input_mz = input_value
+    elif type(input_value) == str:
+        input_mz = formula_mass(input_value, mode)
     else:
         print('Cant recognize input type!')
+    
+    print(round(input_mz,3))
     
     
     
@@ -246,8 +233,19 @@ def ms_chromatogram(mzml_scans, input_mz, error, smooth=False, mode='pos', inter
         plt.xlim(0,retention_time[-1])
         plt.ylim(0,)
         plt.show()
+        
+    if search == False:
+        pass
+    if search == True:
+        if type(input_value) == str:
+            if source == 'chemspider':
+                webbrowser.open("http://www.chemspider.com/Search.aspx?q=" + input_value)
+            elif source == 'pubchem':
+                webbrowser.open("https://pubchem.ncbi.nlm.nih.gov/#query=" + input_value)
+        else:
+            print('Please enter formula for search!')
+    
     return
-
 
 #Deal with roi, check peakonly
 def peak_pick(mzml_scans, input_mz, error, peak_base = 5000, thr = 0.02, min_d = 1, rt_window = 1.5, peak_area_thres = 1e5, min_scan = 15, max_scan = 200, max_peak = 7):
@@ -337,6 +335,27 @@ def integration_plot(mzml_scans, input_mz, error, peak_base = 0.005, thr = 0.02,
     
     result_dict = peak_pick(mzml_scans, input_mz, error)
     
+    def ms_chromatogram_list(mzml_scans, input_mz, error):
+        '''
+        Generate a peak list for specific input_mz over whole rt period from the mzml file
+        ***Most useful function!
+        '''
+        retention_time = []
+        intensity = []
+        for scan in mzml_scans:
+            #print(i)
+            retention_time.append(scan.scan_time[0])
+
+            target_mz, target_index = mz_locator(scan.mz, input_mz, error)
+            if target_index == 'NA':
+                intensity.append(0)
+            else:
+                intensity.append(sum(scan.i[target_index]))
+
+        return retention_time, intensity
+
+    rt, ints = ms_chromatogram_list(mzml_scans, input_mz, error)
+    
     plt.figure(figsize=(20,10))
     plt.plot(rt, ints)
     plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
@@ -352,62 +371,3 @@ def integration_plot(mzml_scans, input_mz, error, peak_base = 0.005, thr = 0.02,
         
     
     return
-
-
-#Main dev issue--iteration efficiency & peak picking algorithm update
-#2way: 1. optimize iteration algorithm, 2. optimize mz_list selection--drop useless mzs
-def peak_list(mzml_scans, mz_error, mzmin = 0, mzmax=1000, peak_base = 0.005, thr = 0.02, min_d = 1, rt_window = 1.5, peak_area_thres = 1e5, min_scan = 7, scan_thres = 7):
-    '''
-    input from ms1_baseline function
-    Q to solve: how to correctly select mz slice?? see mz_locator
-    '''
-    
-    #Get m/z range
-    def mz_array(scans, mz_error):
-        min_mz = scans[0].mz.min()
-        max_mz = scans[0].mz.max()
-        for scan in scans:
-            if min_mz > scan.mz.min():
-                min_mz = scan.mz.min()
-            if max_mz < scan.mz.max():
-                max_mz = scan.mz.max()
-
-        mz_list = np.arange(min_mz + mz_error, max_mz - mz_error,2 * mz_error)
-
-        return mz_list
-    
-    mzlist = mz_array(mzml_scans, mz_error)
-    
-    if mzlist.max() >= mzmax:
-        mzlist = mzlist[mzlist <= mzmax]
-    if mzlist.min() <= mzmin:
-        mzlist = mzlist[mzlist >= mzmin]
-    
-    
-    result_dict = {}
-    rt = []
-    for scan in mzml_scans:
-        rt.append(scan.scan_time[0])
-    
-    for mz in tqdm(mzlist):
-        try:
-            peak_dict = peak_pick(mzml_scans, mz, mz_error)
-        except:
-            pass
-        
-        if len(result_dict) == 0:
-            for index in peak_dict:
-                result_dict.update({'m/z' : [mz],
-                                    'rt' : [rt[index]],
-                                    'peak area' : [peak_dict[index][2]]})
-        else:
-            for index in peak_dict:
-                result_dict['m/z'].append(mz)
-                result_dict['rt'].append(rt[index])
-                result_dict['peak area'].append(peak_dict[index][2])
-            
-    print('Peak processing finished!')
-    d_result = pd.DataFrame(result_dict)
-    print('Dataframe created!')
-    
-    return d_result
