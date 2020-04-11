@@ -45,3 +45,13 @@ Make up a slide for overview, part of works, update as week post?
 - part of works to assign(module assignment)
 - main goal development(brain storm for the solution)
 - train/test samples
+
+
+Peak picking idea::
+Peak range refinement: instead of loop for 0 point as boundary, loop for 1/2 intensity and expand the result by 2 to get the range?
+
+
+Alignment Idea::
+Two ways to go:
+1. Use every first feature in first sample as ref and align subsequent ones according to setup, if no-align ref feature then append to the align feature list
+2. Create a dataset with all feature presented then group them for the alignment -- better
