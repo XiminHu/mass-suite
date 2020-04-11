@@ -55,3 +55,17 @@ Alignment Idea::
 Two ways to go:
 1. Use every first feature in first sample as ref and align subsequent ones according to setup, if no-align ref feature then append to the align feature list
 2. Create a dataset with all feature presented then group them for the alignment -- better
+
+
+Peak picking:
+1. validate peak selection algorithm
+2. refine peak boundary finding
+-- Find noise peak based on peak statistic
+3. mz window selection refinement -- based on kernel density rather than loop for all
+4. supercomputer/ cloud service -- 4 th week 
+hyak
+5. debug
+
+Task for me 4-11~4-18:
+refine mz_locator: not use sum, use the closest mz
+refine peak boundary: not use loop until thres, calculate every 3 previous int R value, if > thres(indicate linear relationship) then proceed, if not then break and record as boundary
