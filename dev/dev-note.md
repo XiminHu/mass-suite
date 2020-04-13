@@ -8,5 +8,11 @@ TAsk:
 
 
 Task for me 4-11~4-18:
-refine mz_locator: not use sum, use the closest mz
-refine peak boundary: not use loop until thres, calculate every 3 previous int R value, if > thres(indicate linear relationship) then proceed, if not then break and record as boundary
+refine peak boundary: not use loop until thres, calculate every 3 previous int R value, if > thres(indicate linear relationship) then proceed, if not then break and record as boundary -dev on peak picking function
+update output value: considering include S/N(algorithm needed), half intensity rt point instead of full boundary for alignment -- dev on sample 1d array
+check scipy.signal functions, could be helpful to get statistical value out from 1d array
+
+small task:
+1. peak width, 1/2rt, S/N calculation
+2. add filter onto boundary detection
+3. check scipy.signal and peakutils code
