@@ -16,3 +16,6 @@ small task:
 1. peak width, 1/2rt, S/N calculation
 2. add filter onto boundary detection
 3. check scipy.signal and peakutils code
+
+**important!! mz_locator--add relative ppm error, now only used absolute value
+**alignment note: firstly read all features in seperate files, reorganize the features to order or rebin the file for different rt,mz bins to accelerate process time
