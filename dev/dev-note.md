@@ -19,3 +19,7 @@ small task:
 
 **important!! mz_locator--add relative ppm error, now only used absolute value
 **alignment note: firstly read all features in seperate files, reorganize the features to order or rebin the file for different rt,mz bins to accelerate process time
+
+check hyak
+generate rt,int data with statistical numbers, dev ml model to do peak classification
+write function for mz looping list generation
