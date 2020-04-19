@@ -24,3 +24,6 @@ generate rt,int data with statistical numbers, dev ml model to do peak classific
 write function for mz looping list generation - done
 
 potentially switch all list out and instead use np.array to boost loop efficiency
+
+need a looping script for the peak manual labeling, potentially logic in: one data-one plot- input label- next loop
+the modeling classification will be used after peak detection to exclude bad peaks or before detection to only have good peak into detection -- need discussion and efficiency test
