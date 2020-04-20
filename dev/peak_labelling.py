@@ -19,16 +19,19 @@ d_iter['label'] = 0
 count = 1
 
 for i, row in d_iter.iterrows():
-    plt.figure(figsize = (12,6))
-    plt.plot(d_rt.values, literal_eval(row['int']))
-    plt.xlabel('RT')
-    plt.ylabel('intensity')
-    plt.show()
-    label = input('1 for good, 2 for unsure, 3 for bad:')
-    d_iter.at[i,'label'] = label
-    print('finished', count, 'out of ', d_iter.shape[0])
-    count += 1
-    plt.clf()
+    try:
+        plt.figure(figsize = (12,6))
+        plt.plot(d_rt.values, literal_eval(row['int']))
+        plt.xlabel('RT')
+        plt.ylabel('intensity')
+        plt.show()
+        label = input('1 for good, 2 for unsure, 3 for bad:')
+        d_iter.at[i,'label'] = label
+        print('finished', count, 'out of ', d_iter.shape[0])
+        count += 1
+        plt.clf()
+    except:
+        pass
 
 outputpath = '../example_data/peakdata/labelled_output/'
 outputname = input('output name, please use .csv:')
