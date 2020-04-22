@@ -1,4 +1,5 @@
 # mass-suite
+[![Build Status](https://travis-ci.com/XiminHu/mass-suite.svg?branch=master)](https://travis-ci.com/XiminHu/mass-suite)
 
 This package is developed for the University of Washington eScience capstone project.
 
