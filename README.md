@@ -1,6 +1,6 @@
 # mass-suite
 [![Build Status](https://travis-ci.com/XiminHu/mass-suite.svg?branch=master)](https://travis-ci.com/XiminHu/mass-suite)
-
+[![Coverage Status](https://coveralls.io/repos/github/XiminHu/mass-suite/badge.svg?branch=master)](https://coveralls.io/github/XiminHu/mass-suite?branch=master)
 This package is developed for the University of Washington eScience capstone project.
 
 
