@@ -64,7 +64,7 @@ def noise_removal(mzml_scans, int_thres = 5000):
     return
 
 
-
+#Code review
 def mz_locator(input_list, mz, error, select_app = True): #updated to select_app, when false only select closest one, when true append all, use as a backdoor for now if closest algorithm messed up
     '''
     Find specific mzs from given mz and error range out from a given mz array
@@ -105,8 +105,7 @@ def mz_locator(input_list, mz, error, select_app = True): #updated to select_app
     return t_mz, t_i
 
 
-#Deal with roi, check peakonly
-#Deal with roi, check peakonly
+#Code review
 def peak_pick(mzml_scans, input_mz, error, peak_thres = 0.01, thr = 0.02, min_d = 1, rt_window = 1.5, peak_area_thres = 1e5, min_scan = 15, max_scan = 200, max_peak = 5, min_scan_window = 20, sn_range = 7):
     '''
     firstly get rt, intensity from given mz and error out of the mzml file
@@ -229,10 +228,7 @@ def peak_pick(mzml_scans, input_mz, error, peak_thres = 0.01, thr = 0.02, min_d 
     return result_dict
 
 
-#Main dev issue--iteration efficiency & peak picking algorithm update
-#2way: 1. optimize iteration algorithm, 2. optimize mz_list selection--drop useless mzs
-#Main dev issue--iteration efficiency & peak picking algorithm update
-#2way: 1. optimize iteration algorithm, 2. optimize mz_list selection--drop useless mzs
+#Code review
 def peak_list(mzml_scans, err_ppm = 20, mz_c_thres = 5, peak_base = 0.005, thr = 0.02, min_d = 1, rt_window = 1.5, peak_area_thres = 1e5, min_scan = 7, scan_thres = 7):
     '''
     Generate a dataframe by looping throughout the whole mz space from a given mzml file
