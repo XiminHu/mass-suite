@@ -189,7 +189,10 @@ def peak_pick(mzml_scans, input_mz, error, peak_thres = 0.01, thr = 0.02, min_d 
         signal = intensity[index]
         neighbour_blank = intensity[l_range - sn_range : l_range] + intensity[h_range + 1 : h_range + sn_range + 1]
         noise = max(neighbour_blank)
-        sn = round(signal/noise, 3)
+        if noise != 0:
+            sn = round(signal/noise, 3)
+        elif noise == 0:
+            sn = 0
         
         #Calculate height/width, consider log10 transform
         height = signal
