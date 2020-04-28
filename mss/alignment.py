@@ -42,10 +42,14 @@ def realignment(batch_path, batch_name):
 #maybe take out the progress bar in stack function and instead use
 #print('reading in files')
     total_samp = stack(batch_path)
+<<<<<<< HEAD
 #maybe leave a backddor in stack function to get the num_files
 #in stack, instead of return the df, try return num_files, df
 #Thus you will have the function as total_samp, num_files = stack(batch_path)
     num_files = len([f for f in os.listdir(batch_path)if os.path.isfile(os.path.join(batch_path, f))]) 
+=======
+    num_files = len([f for f in os.listdir(batch_path)if os.path.isfile(os.path.join(batch_path, f))])
+>>>>>>> 22819954d4ffc78f45a5d9a4d10e42c5855f4016
     for files in range(num_files):
 #sample string trim is needed to get rid of the .txt/.csv extension
         sample = os.listdir(batch_path)[files] #Create columns using the file name
