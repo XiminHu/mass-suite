@@ -32,7 +32,7 @@ def realignment(batch_path, batch_name):
     mz_error = 0.015
     col_index = 4
     total_samp = stack(batch_path)
-    num_files = len([f for f in os.listdir(batch_path)if os.path.isfile(os.path.join(batch_path, f))]) 
+    num_files = len([f for f in os.listdir(batch_path)if os.path.isfile(os.path.join(batch_path, f))])
     for files in range(num_files):
         sample = os.listdir(batch_path)[files]
         alignment_df[sample] = 0.0
