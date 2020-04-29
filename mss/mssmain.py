@@ -241,13 +241,13 @@ def peak_list(mzml_scans, err_ppm = 20, mz_c_thres = 5, peak_base = 0.005, thr =
     
     #Get m/z range -- updated 0416
     print('Generating mz list...')
-    def mz_gen(mzml_scans, err_ppm, mz_c_thres):
+    def mz_gen(mzml_scans, err_ppm, mz_c_thres): # Function to filter out empty mz slots to speed up the process
         pmz = []
         for scan in mzml_scans:
             pmz.append(scan.mz)
         pmz = np.hstack(pmz).squeeze()
 
-        def mz_list_gen(minmz, maxmz, error_ppm):
+        def mz_list_gen(minmz, maxmz, error_ppm): #Function to generate a reference mz list using a defined step according to user setting
             error = error_ppm * 1e-6
             mz_list = [minmz]
             mz = minmz
