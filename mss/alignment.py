@@ -180,14 +180,22 @@ def realignment(batch_path, batch_name, file_type, rt_error, MZ_error):
             alignment_df.at[rows, 'Average m/z'] = (alignment_df.loc[rows,
                                                     'Sum Precursor m/z']/count)
         else:
-            alignment_df = alignment_df.drop(alignment_df.index[row])
-            print("Invalid peak was removed.")  # For detection error
+            invalid = []
+            invalid.append(rows)
+            print("Identified invalid peak(s)")  # For detection error
+    if len(invalid) > 0:
+        for i in range(len(invalid)):
+            alignment_df = alignment_df.drop(alignment_df.index[invalid[i]])
+        alignment_df = alignment_df.reset_index(drop=True)
+        print("Removed invalid peak(s) from reference")
+    else:
+        pass
     # Drop columns to collect sums for averaging
     alignment_df = alignment_df.drop(columns=[
                    'Sum RT (min)', 'Sum Precursor m/z'])
     alignment_df = alignment_df.round({'Average RT (min)': 3,
                                        'Average m/z': 5})
-    print("Alignment done")
+    print("Alignment done!")
     # converts file for saving
     alignment_df.to_csv(batch_name + file_type, header=True, index=False)
     print("File saved")
