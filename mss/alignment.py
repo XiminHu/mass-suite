@@ -167,6 +167,8 @@ def realignment(batch_path, batch_name, file_type, rt_error, MZ_error):
     alignment_df.rename(columns={'Precursor m/z': 'Average m/z'}, inplace=True)
     # Replace all NaN elements with 0
     alignment_df = alignment_df.fillna(0)
+    alignment_df = alignment_df.sort_values(by='Average m/z',
+                                            ignore_index=True)
     for rows in range(len(alignment_df)):
         # Calculating the averages after the iterations
         # requires count of nonzero count to calculate the mean properly
@@ -183,11 +185,6 @@ def realignment(batch_path, batch_name, file_type, rt_error, MZ_error):
     # Drop columns to collect sums for averaging
     alignment_df = alignment_df.drop(columns=[
                    'Sum RT (min)', 'Sum Precursor m/z'])
-    # Final sort by m/z
-    # got error: sort_values(), pandas ver 0.25.1
-    # after updated to pandas 1.0.3 works
-    alignment_df = alignment_df.sort_values(by='Average m/z',
-                                            ignore_index=True)
     alignment_df = alignment_df.round({'Average RT (min)': 3,
                                        'Average m/z': 5})
     print("Alignment done")
