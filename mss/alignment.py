@@ -178,7 +178,8 @@ def realignment(batch_path, batch_name, file_type, rt_error, MZ_error):
             alignment_df.at[rows, 'Average m/z'] = (alignment_df.loc[rows,
                                                     'Sum Precursor m/z']/count)
         else:
-            print("Something went wrong")  # For detection error
+            alignment_df = alignment_df.drop(alignment_df.index[row])
+            print("Invalid peak was removed.")  # For detection error
     # Drop columns to collect sums for averaging
     alignment_df = alignment_df.drop(columns=[
                    'Sum RT (min)', 'Sum Precursor m/z'])
