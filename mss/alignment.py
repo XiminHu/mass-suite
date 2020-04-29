@@ -167,6 +167,8 @@ def realignment(batch_path, batch_name, file_type, rt_error, MZ_error):
     alignment_df.rename(columns={'Precursor m/z': 'Average m/z'}, inplace=True)
     # Replace all NaN elements with 0
     alignment_df = alignment_df.fillna(0)
+    alignment_df = alignment_df.sort_values(by='Average m/z',
+                                            ignore_index=True)
     for rows in range(len(alignment_df)):
         # Calculating the averages after the iterations
         # requires count of nonzero count to calculate the mean properly
@@ -178,19 +180,22 @@ def realignment(batch_path, batch_name, file_type, rt_error, MZ_error):
             alignment_df.at[rows, 'Average m/z'] = (alignment_df.loc[rows,
                                                     'Sum Precursor m/z']/count)
         else:
-            alignment_df = alignment_df.drop(alignment_df.index[row])
-            print("Invalid peak was removed.")  # For detection error
+            invalid = []
+            invalid.append(rows)
+            print("Identified invalid peak(s)")  # For detection error
+    if len(invalid) > 0:
+        for i in range(len(invalid)):
+            alignment_df = alignment_df.drop(alignment_df.index[invalid[i]])
+        alignment_df = alignment_df.reset_index(drop=True)
+        print("Removed invalid peak(s) from reference")
+    else:
+        pass
     # Drop columns to collect sums for averaging
     alignment_df = alignment_df.drop(columns=[
                    'Sum RT (min)', 'Sum Precursor m/z'])
-    # Final sort by m/z
-    # got error: sort_values(), pandas ver 0.25.1
-    # after updated to pandas 1.0.3 works
-    alignment_df = alignment_df.sort_values(by='Average m/z',
-                                            ignore_index=True)
     alignment_df = alignment_df.round({'Average RT (min)': 3,
                                        'Average m/z': 5})
-    print("Alignment done")
+    print("Alignment done!")
     # converts file for saving
     alignment_df.to_csv(batch_name + file_type, header=True, index=False)
     print("File saved")
