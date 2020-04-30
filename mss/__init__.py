@@ -1,4 +1,6 @@
-from .mssmain import *
-from .visreader import *
+from mss import visreader
+from mss import mssmain
+from mss import alignment
+from .version import __version__
 
-__version__ = '0.0.1'
+__all__ = [visreader, mssmain, alignment, __version__]
