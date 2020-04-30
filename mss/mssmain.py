@@ -142,7 +142,7 @@ def peak_pick(mzml_scans, input_mz, error, peak_thres = 0.01, thr = 0.02, min_d 
     
     #Get rt_window corresponded scan number
     scan_window = int((rt_window / (rt[int(len(intensity) / 2)] - rt[int(len(intensity) / 2) - 1])) / 2)
-    
+    rt_conversion_rate = rt[1] - rt[0]
     #Get peak index
     indexes = peakutils.indexes(intensity, thres=thr, min_dist = min_d)
     
@@ -198,7 +198,29 @@ def peak_pick(mzml_scans, input_mz, error, peak_thres = 0.01, thr = 0.02, min_d 
         height = signal
         width = rt[h_range] - rt[l_range]
         hw_ratio = round(height/width,0)
+
+        #------------------------------------------------new-------------------------------------------
+        #Additional global parameters
+        #1/2 peak range
+        h_loc = index
+        l_loc = index
+        while intensity[h_loc] > half_intensity:
+            h_loc += 1
+        while intensity[l_loc] > half_intensity:
+            l_loc -= 1
+        #calculate for slope -- interpolation included-- pay attention!
+        h_half = h_loc + (half_intensity - intensity[h_loc]) / (intensity[h_loc - 1] - intensity[h_loc])
+        l_half = l_loc + (half_intensity - intensity[l_loc]) / (intensity[l_loc + 1] - intensity[l_loc])
+        mb = (height - half_intensity) / ((h_half - index) * rt_conversion_rate) #when transfer back use rt[index] instead
+        ma = (height - half_intensity) / ((index - l_half) * rt_conversion_rate)
+        #------------------------------------------------new-------------------------------------------
         
+
+        #Awaiting to be added: model prediction as the assessment score column
+        #score = model.fit(X_para from all above)
+        score = 1
+        #final result append score
+
 
         #Intergration based on the simps function
         if len(peak_range) >= min_scan:
@@ -210,11 +232,11 @@ def peak_pick(mzml_scans, input_mz, error, peak_thres = 0.01, thr = 0.02, min_d 
                 
                 #appending to result
                 if len(result_dict) == 0:
-                    result_dict.update({index : [l_range, h_range, integration_result, sn, hw_ratio, ab_ratio]})
+                    result_dict.update({index : [l_range, h_range, integration_result, sn, score]})
                 elif integration_result != list(result_dict.values())[-1][2]: #Compare with previous item
                     s_window = abs(index - list(result_dict.keys())[-1])
                     if s_window > min_scan_window:
-                        result_dict.update({index : [l_range, h_range, integration_result, sn, hw_ratio, ab_ratio]})
+                        result_dict.update({index : [l_range, h_range, integration_result, sn, score]})
                     
                 
         #Filtering:
@@ -286,11 +308,15 @@ def peak_list(mzml_scans, err_ppm = 20, mz_c_thres = 5, peak_base = 0.005, thr =
                 for index in peak_dict:
                     result_dict.update({'m/z' : [mz],
                                         'rt' : [rt[index]],
+                                        'sn' : [peak_dict[index][3]],
+                                        'score' : [peak_dict[index][4]],
                                         'peak area' : [peak_dict[index][2]]})
             else:
                 for index in peak_dict:
                     result_dict['m/z'].append(mz)
                     result_dict['rt'].append(rt[index])
+                    result_dict['sn'].append(peak_dict[index][3])
+                    result_dict['score'].append(peak_dict[index][4])
                     result_dict['peak area'].append(peak_dict[index][2])
     #print(result_dict)        
     print('Peak processing finished!')
