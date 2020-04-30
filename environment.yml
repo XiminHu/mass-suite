@@ -49,7 +49,7 @@ dependencies:
   - pthread-stubs=0.4
   - pyparsing=2.4.7
   - pyqt=5.9.2
-  - python=3.8.2
+  - python
   - python-dateutil=2.8.1
   - python_abi=3.8
   - pytz=2019.3
