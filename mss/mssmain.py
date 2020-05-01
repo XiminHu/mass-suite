@@ -216,10 +216,6 @@ def peak_pick(mzml_scans, input_mz, error, peak_thres = 0.01, thr = 0.02, min_d 
         #------------------------------------------------new-------------------------------------------
         
 
-        #Awaiting to be added: model prediction as the assessment score column
-        #score = model.fit(X_para from all above)
-        score = 1
-        #final result append score
 
 
         #Intergration based on the simps function
@@ -229,6 +225,19 @@ def peak_pick(mzml_scans, input_mz, error, peak_thres = 0.01, thr = 0.02, min_d 
                 #Calculate Area/background ratio, i.e, peak area vs rectangular area as whole(if =1 then peak is a pleateu)
                 background_area = (h_range - l_range) * height
                 ab_ratio = round(integration_result/background_area, 3)
+
+                #Awaiting to be added: model prediction as the assessment score column
+                #score = model.fit(X_para from all above)
+                w = rt[h_range] - rt[l_range]
+                t_r = (h_half - l_half) * rt_conversion_rate
+                l_width = rt[index] - rt[l_range]
+                r_width = rt[h_range] - rt[index]
+                assym = r_width / l_width
+                var = w ** 2 / (1.764 * ((r_width / l_width) ** 2) - 11.15 * (r_width / l_width) + 28)
+
+                from random import randint
+                score = randint(1,3)
+                #final result append score
                 
                 #appending to result
                 if len(result_dict) == 0:
