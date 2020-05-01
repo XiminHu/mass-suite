@@ -31,9 +31,9 @@ class test_alignment(unittest.TestCase):
         MZ_error = 0.015
         file_type = 'csv'
         
-        # b = alignment.realignment(batchpath, batch_name, file_type, rt_error, MZ_error)
-
-        # assert type(mz_error) == int, "mz error is wrong type"
-        # assert type(RT_error) == int, "rt error is wrong type"
-        # assert type(alignment_df) == pandas.core.frame.DataFrame, "result is wrong datatype"
+        b = alignment.realignment(batchpath, batch_name, file_type, rt_error, MZ_error)
         
+        assert len(b) == 1486, "testing realingment length is off"
+        assert type(b) == pd.core.frame.DataFrame, "output type is wrong"
+        assert type(b.iat[1,2]) == np.float32, "realignment seems to be going incorrectly"
+
