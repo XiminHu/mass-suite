@@ -8,14 +8,17 @@ from tqdm import tqdm
 import mss
 from mss import alignment
 
-data_path = os.path.join(mss.__path__[0], 'data')
+data_path = os.path.dirname(os.path.join(mss.__path__[0]))
+batch_path = data_path + '/example_data/batch/'
 
 class test_alignment(unittest.TestCase):
     
     def test_stack(self):
         """Tests stack functionlity"""
         
-        batchpath = '/mnt/c/Users/nozom/desktop/mass-suite/example_data/batch/'
+        data_path = os.path.dirname(os.path.join(mss.__path__[0]))
+        batchpath = data_path + '/example_data/batch/'
+
         a = alignment.stack(batchpath)
         
         assert len(a) == 2, "output size is wrong"
@@ -25,7 +28,9 @@ class test_alignment(unittest.TestCase):
     def test_realignment(self):
         """Tests realignment functionality"""
         
-        batchpath = '/mnt/c/Users/nozom/desktop/mass-suite/example_data/batch/'
+        data_path = os.path.dirname(os.path.join(mss.__path__[0]))
+        batchpath = data_path + '/example_data/batch/'
+
         batch_name = 'test1'
         rt_error = 0.05
         MZ_error = 0.015
