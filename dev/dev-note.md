@@ -32,3 +32,8 @@ the modeling classification will be used after peak detection to exclude bad pea
 1. hyak learning
 2. pack pymzml notebook into py script and test through mzml files execution
 3. start wrap up for modeling
+
+5.1 coding note
+1. finish up the modeling and close up functions
+2. finish the test
+3. formula assignment & isotopic check?
