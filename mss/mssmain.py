@@ -24,6 +24,7 @@ from IPython.display import clear_output
 from scipy.interpolate import interp1d
 import scipy
 from scipy import stats
+from tensorflow import keras
 
 
 def get_scans(path, ms_all = False, ms_lv = 1):
@@ -114,7 +115,10 @@ def peak_pick(mzml_scans, input_mz, error, peak_thres = 0.01, thr = 0.02, min_d 
     Trim/correct peak range is too small or too large, using min_scan/max_scan,min_scan_window --> trimed l/h_range
     Integration of peak based on the given range using simp function --> peakarea
     '''
-    
+    #Read model for peak assessment
+    Pmodel = keras.models.load_model('model_5_3_14_4_48.h5')
+
+
     #Important funciont, may need to be extracted out later
     #Data output from the chromatogram_plot function
     def ms_chromatogram_list(mzml_scans, input_mz, error):
@@ -122,6 +126,7 @@ def peak_pick(mzml_scans, input_mz, error, peak_thres = 0.01, thr = 0.02, min_d 
         Generate a peak list for specific input_mz over whole rt period from the mzml file
         ***Most useful function!
         '''
+
         #Create empty list to store the data
         retention_time = []
         intensity = []
@@ -235,8 +240,9 @@ def peak_pick(mzml_scans, input_mz, error, peak_thres = 0.01, thr = 0.02, min_d 
                 assym = r_width / l_width
                 var = w ** 2 / (1.764 * ((r_width / l_width) ** 2) - 11.15 * (r_width / l_width) + 28)
 
-                from random import randint
-                score = randint(1,3)
+                x_peak = [w, t_r, l_width, r_width, assym, integration_result, sn, hw_ratio, ab_ratio, height, ma, mb, ma+mb, mb/ma, var]
+                x_input = np.asarray(x_peak)
+                score = np.argmax(Pmodel.predict(x_input.reshape(1,-1)))
                 #final result append score
                 
                 #appending to result
