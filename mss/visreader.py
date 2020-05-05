@@ -18,6 +18,7 @@ from peakutils.plot import plot as pplot
 import webbrowser
 import glob
 from pathlib import Path 
+import pyperclip
 
 #TIC plot
 def tic_plot(mzml_scans, interactive=True):
@@ -62,9 +63,11 @@ def tic_plot(mzml_scans, interactive=True):
     return
 
 
-def ms_plot(mzml_scans, time, interactive=False):
+def ms_plot(mzml_scans, time, interactive=False, search=False, source='MoNA'):
     '''
-    Interactive spectrum plot with nearest retention time from the given time
+    Interactive spectrum plot with nearest retention time from the given scan
+    mzml_scans: mzfile
+    time: selected time for the scan
     '''
     for scan in mzml_scans:
         if scan.scan_time[0] >= time:
@@ -73,7 +76,8 @@ def ms_plot(mzml_scans, time, interactive=False):
             rt = scan.scan_time[0]
             break
     
-    if interactive == True:        
+    if interactive == True:
+        plt.clf()
         fig = go.Figure([go.Bar(x=mz, y=ints, marker_color = 'red', width = 0.5,
                         hovertemplate =
                         'Int: %{y}'+
@@ -100,19 +104,109 @@ def ms_plot(mzml_scans, time, interactive=False):
         plt.ylabel('Intensity')
         plt.title('MS1 spectrum')
     
+    if search==True:
+        for i in range(len(mz)):
+            if i == 0:
+                list_string = str(round(mz[i],4)) + ' ' + str(round(ints[i],1)) + '\r'
+            else:
+                list_string += str(round(mz[i],4)) + ' ' + str(round(ints[i],1)) + '\r'
+        pyperclip.copy(list_string)
+        if source=='MoNA':
+            webbrowser.open("https://mona.fiehnlab.ucdavis.edu/spectra/search")
+        elif source=='metfrag':
+            webbrowser.open("https://msbi.ipb-halle.de/MetFragBeta/")
+            
     return
 
-
-def mz_locator(input_list, mz, error):
+def frag_plot(mzml_scans, precursor, error=20, scan_index=0, noise_thr = 50, interactive=False, search=False, source='MoNA'): 
     '''
-    Find specific mzs from given mz and error range
+    Interactive spectrum plot with nearest retention time from the given scan
+    mzml_scans: mzfile
+    time: selected time for the scan
+    '''
+    p_range_l = precursor * (1 - error * 1e-6)
+    p_range_h = precursor * (1 + error * 1e-6)
+    frag_scan = []
+    for scan in scans:
+        if scan.ms_level == 2:
+            precursor = scan.selected_precursors[0]['mz']
+            p_intensity = scan.selected_precursors[0]['i']
+            if precursor < p_range_h and precursor > p_range_l:
+                frag_scan.append([precursor, p_intensity, scan])
+    frag_scan.sort(key=lambda x: x[1], reverse=True)
+    if len(frag_scan) != 0:
+        print('Now showing index', scan_index, 'of', str(len(frag_scan)), 'total found scans')
+        plot_scan = frag_scan[scan_index][2]
+        drop_index = np.argwhere(plot_scan.i <= noise_thr)
+        plot_scan.i = np.delete(plot_scan.i, drop_index)
+        plot_scan.mz = np.delete(plot_scan.mz, drop_index)
+        mz = plot_scan.mz
+        ints = plot_scan.i
+        rt = plot_scan.scan_time[0]
+        print('Precursor:', round(plot_scan.selected_precursors[0]['mz'],4), 'precursor intensity:', round(plot_scan.selected_precursors[0]['i'],1))
+        print('Scan time:', round(plot_scan.scan_time[0], 2), 'minute')
+        
+        if interactive == True:
+            plt.clf()
+            fig = go.Figure([go.Bar(x=mz, y=ints, marker_color = 'red', width = 0.5,
+                            hovertemplate =
+                            'Int: %{y}'+
+                            '<br>m/z: %{x}<br>')])
+            fig.update_traces(marker_color='rgb(158,202,225)', marker_line_color='rgb(0,0,0)',
+                      marker_line_width=0.5, opacity=1)
+            fig.update_layout(
+                    title_text=str(round(rt, 3)) + ' min MS1 spectrum, input '+ str(time) + ' min',
+                    template = 'simple_white',
+                    width = 1000,
+                    height = 600,
+                    xaxis = {'title':'m/z ratio'},
+                    yaxis = dict(
+                        showexponent = 'all',
+                        exponentformat = 'e',
+                        title = 'Intensity'))
+            fig.show()
+
+        elif interactive == False:
+            plt.figure(figsize=(10,5))
+            plt.bar(mz, ints, width = 1.0)
+            plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+            plt.xlabel('m/z')
+            plt.ylabel('Intensity')
+            plt.title('MS1 spectrum')
+            plt.xlim(0,)
+
+        if search==True:
+            for i in range(len(mz)):
+                if i == 0:
+                    list_string = str(round(mz[i],4)) + ' ' + str(round(ints[i],1)) + '\r'
+                else:
+                    list_string += str(round(mz[i],4)) + ' ' + str(round(ints[i],1)) + '\r'
+            pyperclip.copy(list_string)
+            if source=='MoNA':
+                webbrowser.open("https://mona.fiehnlab.ucdavis.edu/spectra/search")
+            elif source=='metfrag':
+                webbrowser.open("https://msbi.ipb-halle.de/MetFragBeta/")
+        
+    else:
+        print('No MS2 spectrum found!')
+    
+    return
+
+def mz_locator(input_list, mz, error, select_app = True): #updated to select_app, when false only select closest one, when true append all, use as a backdoor for now if closest algorithm messed up
+    '''
+    Find specific mzs from given mz and error range out from a given mz array
     input list: mz list
+    mz: input_mz that want to be found
+    error: error range is now changed to ppm level
     '''
     target_mz = []
     target_index = []
     
-    lower_mz = mz - error
-    higher_mz = mz + error
+    #ppm conversion
+    error = error * 1e-6
+    
+    lower_mz = mz - error * mz
+    higher_mz = mz + error * mz
 
     for i, mzs in enumerate(input_list):
         if mzs < lower_mz:
@@ -121,12 +215,22 @@ def mz_locator(input_list, mz, error):
             if mzs <= higher_mz:
                 target_mz.append(mzs)
                 target_index.append(i)
-        elif mzs > higher_mz:
-                target_mz = 0
-                target_index = 'NA'
-                break
+
+    if select_app == False:
+        if len(target_mz) != 0:
+            target_error = [abs(i - mz) for i in target_mz]
+            minpos = target_error.index(min(target_error)) 
+            t_mz = target_mz[minpos]
+            t_i = target_index[minpos]
+        else:
+            t_mz = 0
+            t_i = 'NA'
+    if select_app == True:
+        t_mz = target_mz
+        t_i = target_index
         
-    return target_mz, target_index
+    return t_mz, t_i
+
 
 
 def formula_mass(input_formula, mode = 'pos'):
