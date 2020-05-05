@@ -25,6 +25,7 @@ from scipy.interpolate import interp1d
 import scipy
 from scipy import stats
 from tensorflow import keras
+import h5py
 
 
 def get_scans(path, ms_all = False, ms_lv = 1):
@@ -116,6 +117,9 @@ def peak_pick(mzml_scans, input_mz, error, peak_thres = 0.01, thr = 0.02, min_d 
     Integration of peak based on the given range using simp function --> peakarea
     '''
     #Read model for peak assessment
+
+    #Pretreat the model
+
     Pmodel = keras.models.load_model('model_5_3_14_4_48.h5')
 
 
