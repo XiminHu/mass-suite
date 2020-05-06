@@ -141,10 +141,10 @@ def frag_comp(mzml_scans, precursor, error=20, scan_index=0, mona_index=0, noise
         spec1 = mona_list.split(' ')
         spec2 = [i.split(':') for i in spec1]
         mona_mz = [float(a) for a,b in spec2]
-        mona_i = [float(b) for a,b in spec2]
-        print(mona_mz)
-        print(mona_i) #Integrate into the plot
+        mona_i = [-float(b) for a,b in spec2]
 
+        #normalize scan intensity
+        ints = ints/ints.max()*100
 
         if interactive == True:
             plt.clf()
@@ -167,12 +167,17 @@ def frag_comp(mzml_scans, precursor, error=20, scan_index=0, mona_index=0, noise
             fig.show()
 
         elif interactive == False:
-            plt.figure(figsize=(10,5))
-            plt.bar(mz, ints, width = 1.0)
+            fig, ax = plt.subplots(figsize=(12,9))
+            ax.bar(mz, ints, width = 1.0, label='scan spectrum')
+            ax.bar(mona_mz, mona_i, width = 1.0, label='massbank spectrum')
+            ax.axhline(y=0, color='k')
             plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+            ticks =  ax.get_yticks()
+            ax.set_yticklabels([int(abs(tick)) for tick in ticks])
             plt.xlabel('m/z')
-            plt.ylabel('Intensity')
-            plt.title('MS1 spectrum')
+            plt.ylabel('Relative Intensity %')
+            plt.title('fragment spectrum')
+            plt.legend()
             plt.xlim(0,)
 
         if search==True:
