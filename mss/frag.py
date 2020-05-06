@@ -4,6 +4,8 @@ import urllib.request
 import json
 import pymzml
 import numpy as np
+import matplotlib.pyplot as plt
+import plotly
 
 def massbank(frag_list, minsimilarity=500):
     url = 'https://mona.fiehnlab.ucdavis.edu/rest/similarity/search'
@@ -89,7 +91,7 @@ def frag_massbank(mzml_scans, precursor, error=20, noise_thr=50, scan_index=0):
 
     return d_result
 
-def frag_comp(mzml_scans, precursor, error=20, scan_index=0, noise_thr = 50, interactive=False, search=False, source='MoNA'): 
+def frag_comp(mzml_scans, precursor, error=20, scan_index=0, mona_index=0, noise_thr = 50, interactive=False, search=False, source='MoNA'): 
     '''
     Interactive spectrum plot with nearest retention time from the given scan
     mzml_scans: mzfile
@@ -98,7 +100,7 @@ def frag_comp(mzml_scans, precursor, error=20, scan_index=0, noise_thr = 50, int
     p_range_l = precursor * (1 - error * 1e-6)
     p_range_h = precursor * (1 + error * 1e-6)
     frag_scan = []
-    for scan in scans:
+    for scan in mzml_scans:
         if scan.ms_level == 2:
             precursor = scan.selected_precursors[0]['mz']
             p_intensity = scan.selected_precursors[0]['i']
@@ -116,7 +118,34 @@ def frag_comp(mzml_scans, precursor, error=20, scan_index=0, noise_thr = 50, int
         rt = plot_scan.scan_time[0]
         print('Precursor:', round(plot_scan.selected_precursors[0]['mz'],4), 'precursor intensity:', round(plot_scan.selected_precursors[0]['i'],1))
         print('Scan time:', round(plot_scan.scan_time[0], 2), 'minute')
-        
+
+        for i in range(len(mz)):
+        	if i == 0:
+        		list_string = str(round(mz[i],4)) + ':' + str(round(ints[i],1)) + ' '
+        	else:
+        		list_string += str(round(mz[i],4)) + ':' + str(round(ints[i],1)) + ' '
+
+        url = 'https://mona.fiehnlab.ucdavis.edu/rest/similarity/search'
+        values = {"spectrum" : list_string, "minSimilarity" : 500}
+
+        data_str = json.dumps(values)
+        data = data_str.encode()
+        headers = {
+          "content-type": "application/json",
+        }
+        req = urllib.request.Request(url, data, headers)
+        response = urllib.request.urlopen(req)
+        json_result = json.loads(response.read())
+
+        mona_list = json_result[mona_index]['hit']['spectrum']
+        spec1 = mona_list.split(' ')
+        spec2 = [i.split(':') for i in spec1]
+        mona_mz = [float(a) for a,b in spec2]
+        mona_i = [float(b) for a,b in spec2]
+        print(mona_mz)
+        print(mona_i) #Integrate into the plot
+
+
         if interactive == True:
             plt.clf()
             fig = go.Figure([go.Bar(x=mz, y=ints, marker_color = 'red', width = 0.5,

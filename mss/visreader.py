@@ -127,7 +127,7 @@ def frag_plot(mzml_scans, precursor, error=20, scan_index=0, noise_thr = 50, int
     p_range_l = precursor * (1 - error * 1e-6)
     p_range_h = precursor * (1 + error * 1e-6)
     frag_scan = []
-    for scan in scans:
+    for scan in mzml_scans:
         if scan.ms_level == 2:
             precursor = scan.selected_precursors[0]['mz']
             p_intensity = scan.selected_precursors[0]['i']
