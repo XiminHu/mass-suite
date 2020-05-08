@@ -72,6 +72,10 @@ def realignment(batch_path, batch_name, file_type, rt_error, MZ_error):
     print("Initial reference built")
     print("Alignment beginning..")
     for row in tqdm(range(len(total_samp))):
+        if alignment_df.isnull().values.any() is True:
+            alignment_df = alignment_df.fillna(0)
+        else:
+            pass
         row_max = len(alignment_df)
         if row < range(len(total_samp))[-1]:
             # Loops until a change in sample occurs by index
