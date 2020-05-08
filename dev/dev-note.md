@@ -39,4 +39,6 @@ the modeling classification will be used after peak detection to exclude bad pea
 3. formula assignment & isotopic check?
 
 5.7 coding note
-Get the complete script from mzml file to aligned worksheet
+Get the complete script from mzml file to aligned worksheet -- done
+1. Model refinement
+2. Revise the workflow to boost up iteration speed

@@ -1,15 +1,20 @@
 import sys
 sys.path.append('../mss')
-import matplotlib.pyplot as plt
-import visreader as mvis
 import mssmain as mss
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
-import os
 
 path = input('Please input the mzml file path:')
 noise_thres = int(input('Please input the noise threshold for ms1 spectrum:'))
+score_switch = input('please define if enable the peak score(Y/N):')
+if score_switch == 'Y':
+    model_score = True
+elif score_switch == 'N':
+    model_score = False
+else:
+    print ('invalid selection')
+    model_score = False
 
 print('Reading mzml files...')
 batch_scan, file_list = mss.batch_scans(path, True, noise_thres)
@@ -18,7 +23,7 @@ print('Processing peak list...')
 d_peak = []
 for i in range(len(batch_scan)):
 	print('Processing', str(int(i+1)), 'out of ', len(batch_scan), 'file')
-	d_result = mss.peak_list(batch_scan[i], 20)
+	d_result = mss.peak_list(batch_scan[i], 20,enable_score=model_score)
 	d_peak.append(d_result)
 
 def stack(d_batch):
@@ -50,7 +55,6 @@ def alignment(d_batch, export_name, rt_error, MZ_error):
     RT_error = rt_error  # units of minutes, can be adjusted
     alignment_df = pd.DataFrame()
     mz_error = MZ_error
-    standard_sample = d_batch[0]  # first sample
     # reads .txt file into a dataframe
     standard_df = pd.DataFrame(d_batch[0], columns=['rt',
                               'm/z', 'sn', 'score', 'peak area'],
@@ -78,7 +82,7 @@ def alignment(d_batch, export_name, rt_error, MZ_error):
     num_files, total_samp = stack(d_batch)
     for files in range(num_files):
         sample = file_list[files]  # Creates file columns
-        sample = sample[:-4]  # removes extension part in sample name
+        sample = sample[:-5]  # removes extension part in sample name
         alignment_df[sample] = 0.0
         alignment_df[sample] = alignment_df[sample].astype('float32')
     print("Initial reference built")
