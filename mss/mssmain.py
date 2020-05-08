@@ -27,6 +27,8 @@ from scipy import stats
 from tensorflow import keras
 import h5py
 
+from mssdata import peakmodel
+
 
 def get_scans(path, ms_all = False, ms_lv = 1):
     '''
@@ -106,8 +108,8 @@ def mz_locator(input_list, mz, error, select_app = True): #updated to select_app
         
     return t_mz, t_i
 
-
-#Code review
+#Read model for peak assessment
+Pmodel = peakmodel.test_model
 def peak_pick(mzml_scans, input_mz, error, peak_thres = 0.01, thr = 0.02, min_d = 1, rt_window = 1.5, peak_area_thres = 1e5, min_scan = 15, max_scan = 200, max_peak = 5, min_scan_window = 20, sn_range = 7):
     '''
     firstly get rt, intensity from given mz and error out of the mzml file
@@ -116,12 +118,6 @@ def peak_pick(mzml_scans, input_mz, error, peak_thres = 0.01, thr = 0.02, min_d 
     Trim/correct peak range is too small or too large, using min_scan/max_scan,min_scan_window --> trimed l/h_range
     Integration of peak based on the given range using simp function --> peakarea
     '''
-    #Read model for peak assessment
-
-    #Pretreat the model
-
-    Pmodel = keras.models.load_model('model_5_3_14_4_48.h5')
-
 
     #Important funciont, may need to be extracted out later
     #Data output from the chromatogram_plot function

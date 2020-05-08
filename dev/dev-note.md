@@ -37,3 +37,6 @@ the modeling classification will be used after peak detection to exclude bad pea
 1. finish up the modeling and close up functions
 2. finish the test
 3. formula assignment & isotopic check?
+
+5.7 coding note
+Get the complete script from mzml file to aligned worksheet
