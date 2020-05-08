@@ -265,6 +265,6 @@ def realignment(batch_path, batch_name, file_type, rt_error, MZ_error):
                                        'Average m/z': 5})
     print("Alignment done!")
     # converts file for saving
-    alignment_df.to_csv(batch_name + file_type, header=True, index=False)
+    alignment_df.to_csv(batch_path + batch_name + file_type, header=True, index=False)
     print("File saved")
     return alignment_df
