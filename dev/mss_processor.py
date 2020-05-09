@@ -247,11 +247,11 @@ def alignment(d_batch, export_name, rt_error, MZ_error):
     # final dataframe sorted by m/z
     alignment_df = alignment_df.sort_values(by='Average m/z',
                                             ignore_index=True)
+    # empty list to hold any invalid peaks
+    invalid = []
     for rows in range(len(alignment_df)):
         # Calculating the averages after the iterations
         # requires count of nonzero count to calculate the mean properly
-        # empty list to hold any invalid peaks
-        invalid = []
         count = np.count_nonzero(alignment_df.iloc[rows, 8:])
         if count > 0:
             alignment_df.at[rows, 'Average RT (min)'] = (alignment_df.loc[rows,
