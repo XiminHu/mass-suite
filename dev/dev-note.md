@@ -42,3 +42,4 @@ the modeling classification will be used after peak detection to exclude bad pea
 Get the complete script from mzml file to aligned worksheet -- done
 1. Model refinement
 2. Revise the workflow to boost up iteration speed
+3. try different models to see which one works best, KNN/RF/etc.
