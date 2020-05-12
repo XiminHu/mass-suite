@@ -26,8 +26,8 @@ import scipy
 from scipy import stats
 
 #Modeling modules
-from tensorflow import keras
-import h5py
+#from tensorflow import keras
+#import h5py
 from mssdata import peakmodel
 
 
@@ -110,8 +110,8 @@ def mz_locator(input_list, mz, error, select_app = True): #updated to select_app
     return t_mz, t_i
 
 #Read model for peak assessment
-Pmodel = peakmodel.test_model
-def peak_pick(mzml_scans, input_mz, error, enable_score = False, peak_thres = 0.01, thr = 0.02, min_d = 1, rt_window = 1.5, peak_area_thres = 1e5, min_scan = 15, max_scan = 200, max_peak = 5, min_scan_window = 20, sn_range = 7):
+Pmodel = peakmodel.rf_model
+def peak_pick(mzml_scans, input_mz, error, enable_score = True, peak_thres = 0.01, thr = 0.02, min_d = 1, rt_window = 1.5, peak_area_thres = 1e5, min_scan = 15, max_scan = 200, max_peak = 5, min_scan_window = 20, sn_range = 7):
     '''
     firstly get rt, intensity from given mz and error out of the mzml file
     Then find peak on the intensity array, represent as index --> index
@@ -244,9 +244,10 @@ def peak_pick(mzml_scans, input_mz, error, enable_score = False, peak_thres = 0.
 
                     x_peak = [w, t_r, l_width, r_width, assym, integration_result, sn, hw_ratio, ab_ratio, height, ma, mb, ma+mb, mb/ma, var]
                     x_input = np.asarray(x_peak)
-                    score = np.argmax(Pmodel.predict(x_input.reshape(1,-1)))
+                    #score = np.argmax(Pmodel.predict(x_input.reshape(1,-1))) for tensorflow
+                    score = int(Pmodel.predict(x_input.reshape(1,-1)))
                 elif enable_score == False:
-                    score = 1.0
+                    score = 1
                 #final result append score
                 
                 #appending to result
@@ -273,7 +274,7 @@ def peak_pick(mzml_scans, input_mz, error, enable_score = False, peak_thres = 0.
 
 
 #Code review
-def peak_list(mzml_scans, err_ppm = 20, enable_score = False, mz_c_thres = 5, peak_base = 0.005, thr = 0.02, min_d = 1, rt_window = 1.5, peak_area_thres = 1e5, min_scan = 7, scan_thres = 7):
+def peak_list(mzml_scans, err_ppm = 20, enable_score = True, mz_c_thres = 5, peak_base = 0.005, thr = 0.02, min_d = 1, rt_window = 1.5, peak_area_thres = 1e5, min_scan = 7, scan_thres = 7):
     '''
     Generate a dataframe by looping throughout the whole mz space from a given mzml file
     ref to peak_picking function
