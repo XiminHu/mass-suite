@@ -1,6 +1,7 @@
 #import tensorflow as tf 
 import os
 import pickle
+import sklearn
 
 
 this_dir, this_filename = os.path.split(__file__)

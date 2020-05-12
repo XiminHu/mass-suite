@@ -16,6 +16,12 @@ else:
     print ('invalid selection')
     model_score = False
 
+rt_error = float(input('please define the rt error:'))
+mz_error = float(input('please define the mz error:'))
+export_path = input('export path:')
+export_name = input('export name:')
+
+
 print('Reading mzml files...')
 batch_scan, file_list = mss.batch_scans(path, True, noise_thres)
 
@@ -289,10 +295,7 @@ def alignment(d_batch, export_name, rt_error, MZ_error):
     print("File saved")
     return alignment_df
 
-rt_error = float(input('please define the rt error:'))
-mz_error = float(input('please define the mz error:'))
-export_path = input('export path:')
-export_name = input('export name:')
+
 alignment(d_peak, export_path + export_name, rt_error, mz_error)
 
 
