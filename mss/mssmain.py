@@ -24,7 +24,11 @@ from IPython.display import clear_output
 from scipy.interpolate import interp1d
 import scipy
 from scipy import stats
-from tensorflow import keras
+
+#Modeling modules
+#from tensorflow import keras
+#import h5py
+from mssdata import peakmodel
 
 
 def get_scans(path, ms_all = False, ms_lv = 1):
@@ -105,9 +109,9 @@ def mz_locator(input_list, mz, error, select_app = True): #updated to select_app
         
     return t_mz, t_i
 
-
-#Code review
-def peak_pick(mzml_scans, input_mz, error, peak_thres = 0.01, thr = 0.02, min_d = 1, rt_window = 1.5, peak_area_thres = 1e5, min_scan = 15, max_scan = 200, max_peak = 5, min_scan_window = 20, sn_range = 7):
+#Read model for peak assessment
+Pmodel = peakmodel.rf_model
+def peak_pick(mzml_scans, input_mz, error, enable_score = True, peak_thres = 0.01, thr = 0.02, min_d = 1, rt_window = 1.5, peak_area_thres = 1e5, min_scan = 15, max_scan = 200, max_peak = 5, min_scan_window = 20, sn_range = 7):
     '''
     firstly get rt, intensity from given mz and error out of the mzml file
     Then find peak on the intensity array, represent as index --> index
@@ -115,9 +119,6 @@ def peak_pick(mzml_scans, input_mz, error, peak_thres = 0.01, thr = 0.02, min_d 
     Trim/correct peak range is too small or too large, using min_scan/max_scan,min_scan_window --> trimed l/h_range
     Integration of peak based on the given range using simp function --> peakarea
     '''
-    #Read model for peak assessment
-    Pmodel = keras.models.load_model('model_5_3_14_4_48.h5')
-
 
     #Important funciont, may need to be extracted out later
     #Data output from the chromatogram_plot function
@@ -233,16 +234,20 @@ def peak_pick(mzml_scans, input_mz, error, peak_thres = 0.01, thr = 0.02, min_d 
 
                 #Awaiting to be added: model prediction as the assessment score column
                 #score = model.fit(X_para from all above)
-                w = rt[h_range] - rt[l_range]
-                t_r = (h_half - l_half) * rt_conversion_rate
-                l_width = rt[index] - rt[l_range]
-                r_width = rt[h_range] - rt[index]
-                assym = r_width / l_width
-                var = w ** 2 / (1.764 * ((r_width / l_width) ** 2) - 11.15 * (r_width / l_width) + 28)
+                if enable_score == True:
+                    w = rt[h_range] - rt[l_range]
+                    t_r = (h_half - l_half) * rt_conversion_rate
+                    l_width = rt[index] - rt[l_range]
+                    r_width = rt[h_range] - rt[index]
+                    assym = r_width / l_width
+                    var = w ** 2 / (1.764 * ((r_width / l_width) ** 2) - 11.15 * (r_width / l_width) + 28)
 
-                x_peak = [w, t_r, l_width, r_width, assym, integration_result, sn, hw_ratio, ab_ratio, height, ma, mb, ma+mb, mb/ma, var]
-                x_input = np.asarray(x_peak)
-                score = np.argmax(Pmodel.predict(x_input.reshape(1,-1)))
+                    x_peak = [w, t_r, l_width, r_width, assym, integration_result, sn, hw_ratio, ab_ratio, height, ma, mb, ma+mb, mb/ma, var]
+                    x_input = np.asarray(x_peak)
+                    #score = np.argmax(Pmodel.predict(x_input.reshape(1,-1))) for tensorflow
+                    score = int(Pmodel.predict(x_input.reshape(1,-1)))
+                elif enable_score == False:
+                    score = 1
                 #final result append score
                 
                 #appending to result
@@ -269,7 +274,7 @@ def peak_pick(mzml_scans, input_mz, error, peak_thres = 0.01, thr = 0.02, min_d 
 
 
 #Code review
-def peak_list(mzml_scans, err_ppm = 20, mz_c_thres = 5, peak_base = 0.005, thr = 0.02, min_d = 1, rt_window = 1.5, peak_area_thres = 1e5, min_scan = 7, scan_thres = 7):
+def peak_list(mzml_scans, err_ppm = 20, enable_score = True, mz_c_thres = 5, peak_base = 0.005, thr = 0.02, min_d = 1, rt_window = 1.5, peak_area_thres = 1e5, min_scan = 7, scan_thres = 7):
     '''
     Generate a dataframe by looping throughout the whole mz space from a given mzml file
     ref to peak_picking function
@@ -314,7 +319,7 @@ def peak_list(mzml_scans, err_ppm = 20, mz_c_thres = 5, peak_base = 0.005, thr =
     
     for mz in tqdm(mzlist):
         try:
-            peak_dict = peak_pick(mzml_scans, mz, err_ppm)
+            peak_dict = peak_pick(mzml_scans, mz, err_ppm, enable_score)
         except:
             pass
         
@@ -343,7 +348,7 @@ def peak_list(mzml_scans, err_ppm = 20, mz_c_thres = 5, peak_base = 0.005, thr =
     return d_result
 
 
-def batch_scans(path, remove_noise = True, thres_noise = 1000):
+def batch_scans(path, remove_noise = True, thres_noise = 1000): #Only work on MS1 scans, needs update on the MS2 included scans
     all_files = glob.glob(path + "/*.mzML")
     scans = []
     file_list = []

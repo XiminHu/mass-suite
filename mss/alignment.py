@@ -72,6 +72,10 @@ def realignment(batch_path, batch_name, file_type, rt_error, MZ_error):
     print("Initial reference built")
     print("Alignment beginning..")
     for row in tqdm(range(len(total_samp))):
+        if alignment_df.isnull().values.any() is True:
+            alignment_df = alignment_df.fillna(0)
+        else:
+            pass
         row_max = len(alignment_df)
         if row < range(len(total_samp))[-1]:
             # Loops until a change in sample occurs by index
@@ -231,11 +235,11 @@ def realignment(batch_path, batch_name, file_type, rt_error, MZ_error):
     # final dataframe sorted by m/z
     alignment_df = alignment_df.sort_values(by='Average m/z',
                                             ignore_index=True)
+    # empty list to hold invalid peaks
+    invalid = []
     for rows in range(len(alignment_df)):
         # Calculating the averages after the iterations
         # requires count of nonzero count to calculate the mean properly
-        # empty list to hold any invalid peaks
-        invalid = []
         count = np.count_nonzero(alignment_df.iloc[rows, 8:])
         if count > 0:
             alignment_df.at[rows, 'Average RT (min)'] = (alignment_df.loc[rows,
@@ -265,6 +269,6 @@ def realignment(batch_path, batch_name, file_type, rt_error, MZ_error):
                                        'Average m/z': 5})
     print("Alignment done!")
     # converts file for saving
-    alignment_df.to_csv(batch_name + file_type, header=True, index=False)
+    alignment_df.to_csv(batch_path + batch_name + file_type, header=True, index=False)
     print("File saved")
     return alignment_df
