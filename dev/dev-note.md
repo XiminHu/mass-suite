@@ -46,3 +46,6 @@ Get the complete script from mzml file to aligned worksheet -- done
 5.12 coding note
 1. try different models to see which one works best, KNN/RF/etc.
 2. hyak python management--transport to stf group folder instead of personal login node
+
+5.15 coding note
+1. decide whether use all data for clustering or only dilution series for clustering

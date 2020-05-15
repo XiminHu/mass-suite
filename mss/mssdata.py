@@ -11,4 +11,6 @@ class peakmodel:
 	#test_model = tf.keras.models.load_model(test_model_path)
 	Model_file = os.path.join(this_dir, 'rfmodel.pkl')
 	rf_model = pickle.load(open(Model_file, 'rb'))
+	Model_file_t = os.path.join(this_dir, 'rfmodel_tuned.pkl')
+	rf_model_t = pickle.load(open(Model_file_t, 'rb'))
 

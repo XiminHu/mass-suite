@@ -110,7 +110,7 @@ def mz_locator(input_list, mz, error, select_app = True): #updated to select_app
     return t_mz, t_i
 
 #Read model for peak assessment
-Pmodel = peakmodel.rf_model
+Pmodel = peakmodel.rf_model_t
 def peak_pick(mzml_scans, input_mz, error, enable_score = True, peak_thres = 0.01, thr = 0.02, min_d = 1, rt_window = 1.5, peak_area_thres = 1e5, min_scan = 15, max_scan = 200, max_peak = 5, min_scan_window = 20, sn_range = 7):
     '''
     firstly get rt, intensity from given mz and error out of the mzml file
