@@ -49,3 +49,9 @@ Get the complete script from mzml file to aligned worksheet -- done
 
 5.15 coding note
 1. decide whether use all data for clustering or only dilution series for clustering
+2. plot all data as barplot at rows -- x axis = sample, y axis = peak area, then treat them the same way as spectrum
+3. heatmap to do the clustering?
+
+data approach:
+1. non-parameter testing
+2. unsupervised random forest
