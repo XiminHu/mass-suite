@@ -55,3 +55,5 @@ Get the complete script from mzml file to aligned worksheet -- done
 data approach:
 1. non-parameter testing
 2. unsupervised random forest
+
+3. use optic clustering to fill up adduct algorithm
