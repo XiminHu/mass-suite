@@ -1,6 +1,7 @@
 # mass-suite
 [![Build Status](https://travis-ci.com/XiminHu/mass-suite.svg?branch=master)](https://travis-ci.com/XiminHu/mass-suite)
 [![Coverage Status](https://coveralls.io/repos/github/XiminHu/mass-suite/badge.svg?branch=master)](https://coveralls.io/github/XiminHu/mass-suite?branch=master)
+
 This package is initiated from the University of Washington eScience capstone project.
 
 ## Mass-suite: Comprehensive Mass Spectrometry data analysis tool
@@ -34,7 +35,7 @@ The project has the following structure:
 
 ## Featured modules
 
-<font color = 'red'>(waiting for updates..)
+<font color = 'red'>(waiting for updates..)</font>
 
 ## Project Data
 
