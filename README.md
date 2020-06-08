@@ -38,7 +38,7 @@ The project has the following structure:
 
 ## Project Data
 
-All the data used in the project is giving credit to Center of [Urban Water](https://www.urbanwaters.org/).
+All the data used in the project is giving credit to [Center of Urban Water](https://www.urbanwaters.org/).
 
 ## Model training and testing
 
