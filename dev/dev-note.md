@@ -57,3 +57,13 @@ data approach:
 2. unsupervised random forest
 
 3. use optic clustering to fill up adduct algorithm
+
+task for finals:
+1. test
+2. package test/release
+3. travis CI
+4. clean repo & documentation
+5. showcase notebook & ppt for standup
+
+Multiple source note:
+!!for now only the ID is possible, if further accurate prediction/calculation needed, the matrix effect must besolved first for the back calculations
