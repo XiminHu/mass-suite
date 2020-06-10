@@ -23,24 +23,19 @@ def data_prep(d_input, blank_keyword, svb_thres=10, empty_thres=0, cv_thres=5,rt
     score_thres: score column thres
     area_thres: count for max peak area from each row
     '''
-    #Get the index for area thres filter
-    # DM: can this be written simpler? Why do you need to drop the first index?
-    drop_index = np.argwhere(np.asarray(d_input[d_input.columns[4:]].max(axis=1)) < area_thres).reshape(1,-1) 
-    d_thres = d_input.drop(drop_index[0])
+    d_thres = d_input[d_input[d_input.columns[4:]].max(1) >= area_thres]
     
     d_thres = d_thres[(d_thres['Average RT (min)'] > rt_range[0]) & (d_thres['Average RT (min)'] < rt_range[1])]
     d_thres = d_thres[(d_thres['Average m/z'] > mz_range[0]) & (d_thres['Average m/z'] < mz_range[1])]
     d_thres = d_thres[d_thres['Average sn'] >= sn_thres]
     d_thres = d_thres[d_thres['Average score'] >= score_thres]
-    d_thres.reset_index(inplace=True)
-    d_thres.drop(columns=['index'],inplace=True)
+    d_thres.reset_index(inplace=True, drop=True)
     
     col_blank = []
     for key in blank_keyword:
         # Get column name if it contains blank indicating strings
-        # DM: can you just use col_blank without col_app?
-        col_app = [col for col in d_thres.columns if key in col] 
-        col_blank += col_app
+        col_blank.extend([col for col in d_thres.columns if key in col])
+        
     col_sample = [col for col in d_thres.columns if col not in col_blank]
     # Sample maximum area vs Blank average area to count for svb
     d_sample = d_thres[d_thres[col_sample[4:]].max(axis=1) / d_thres[col_blank].mean(axis=1) > svb_thres][col_sample] 
@@ -50,19 +45,21 @@ def data_prep(d_input, blank_keyword, svb_thres=10, empty_thres=0, cv_thres=5,rt
     # Get a list of triplicate, every triplicate is in a sublist
     #Sample: [[a1,a2,a3],[b1,b2,b3]]
     #Note: the triplicate parsing is now only used '_' which needs update in the future
-    trip_list = [list(i) for j, i in groupby(d_sample.columns[4:], lambda a: a.split('_')[1])] 
+    trip_list = [list(i) for j, i in groupby(d_sample.columns[4:], lambda a: a.split('_')[:-1])] 
+    trip_list = [i for i in trip_list if len(i)>=2] #filter out columns that is not in triplicate -- sample naming issue
 
     for triplicate in tqdm(trip_list):
         # DM: maybe use iterrtuples? iterrows has low efficiency and is not reccomended 
-        for index, row in d_sample[triplicate].iterrows(): # Loop for every sets of triplicates
-            if (row == 0).sum() > empty_thres:
-                d_sample.loc[index, triplicate] = 0 # if more than thres, then set all three values to 0
-            elif row.std() / row.mean() > cv_thres:
-                d_sample.loc[index, triplicate] = 0 #If delete or reduce all number to avg?
+        for row in d_sample[triplicate].itertuples(): # Loop for every sets of triplicates
+            if row[1:].count(0) > empty_thres:
+                d_sample.loc[row.Index, triplicate] = 0 # if more than thres, then set all three values to 0
+            elif np.mean(row[1:]) != 0:
+                if np.std(row[1:]) / np.mean(row[1:]) > cv_thres:
+                    d_sample.loc[row.Index, triplicate] = 0 #If delete or reduce all number to avg?
             else:
                 pass
-    #d_sample = d_sample[(d_sample.iloc[:,4:]!=0).sum(1) > 3]
-    
+            
+    d_sample = d_sample[~(d_sample[d_sample.columns[4:]]==0).all(1)] #clean rows with all 0
     
     return d_sample
 
@@ -79,15 +76,14 @@ def ms_cluster(d_input, select_keyword, normalization='linear', visual=False, d_
     min_samples: general parameter for clustering, min neighbourhoods to be counted as a cluster
     '''
     col_select = []
-    # DM: just use col_select instead of col_app?
     for key in select_keyword:
-        col_app = [col for col in d_input.columns if key in col]
-        col_select += col_app
+        col_select.extend([col for col in d_input.columns if key in col])
     d_clu = d_input[col_select]
     
     c_data = d_clu.values
     c_norm = []
     #Performs normalization
+    np.seterr(divide='ignore', invalid='ignore') #silent the warning -- but divide by 0 still exist
     for row in c_data:
         if normalization == 'linear':
             c_norm.append(row/max(row))
@@ -107,20 +103,18 @@ def ms_cluster(d_input, select_keyword, normalization='linear', visual=False, d_
     
     if d_reduce == True:
         if d_reduce_method == 'tsne':
-            # DM: Maybe avoid using X as variable name?
             model = TSNE(learning_rate=100,perplexity=50,n_iter=1000) #Tune perplexity and n_iter
             transformed = model.fit_transform(d_norm)
-            X=transformed.copy()
+            d_feature = transformed.copy()
         else:
             pass
     elif d_reduce == False:
-        # DM: rename for clarity?
-        X=d_norm.copy()
+        d_feature = d_norm.copy()
     else:
         pass
     
     if cluster_method == 'dbscan':
-        dbscan = cluster.DBSCAN(eps=eps, min_samples=min_samples).fit(X)
+        dbscan = cluster.DBSCAN(eps=eps, min_samples=min_samples).fit(d_feature)
         labels = dbscan.labels_
         unique_labels = set(dbscan.labels_)
         
@@ -136,7 +130,7 @@ def ms_cluster(d_input, select_keyword, normalization='linear', visual=False, d_
         d_label = d_init.loc[d_norm.index] #Use the index to match back to the original datasheet
         d_label.insert(4,"label", dbscan.labels_.tolist())
     elif cluster_method == 'optics':
-        optics = cluster.OPTICS(min_samples=min_samples).fit(X)
+        optics = cluster.OPTICS(min_samples=min_samples).fit(d_feature)
         labels = optics.labels_
         unique_labels = set(optics.labels_)
         if visual == True:
@@ -153,7 +147,7 @@ def ms_cluster(d_input, select_keyword, normalization='linear', visual=False, d_
     else:
         pass
     
-    #Post filter -- filter out features that present in other sources but not SR520 -- keep it open for now -- check multisource.ipynb
+    #Post filter -- filter out features that present in other sources but not SR520 -- keep it open for now
     #If activate add one more variable:source_keyword
 #     col_source = []
 #     for key in source_keyword:
@@ -165,7 +159,7 @@ def ms_cluster(d_input, select_keyword, normalization='linear', visual=False, d_
     return d_label
 
 
-def trend_calc(d_input, select_keyword, min_size=5, normalization='linear', visual=True):
+def trend_calc(d_input, select_keyword, min_size=5, normalization='linear', method='pearsonr',visual=True):
     """This function calculates clustering based on the pearson correlation.
     It takes in a dataframe and a user defined value for what qualifies as a cluster.
     User can choose whether or not to have a visual plot of the scatter with True/False."""
@@ -206,8 +200,12 @@ def trend_calc(d_input, select_keyword, min_size=5, normalization='linear', visu
         for row in range(len(d_norm)):
             feature_1 = d_norm.iloc[0]
             feature_2 = d_norm.iloc[row]
-            corr, p_val = scipy.stats.pearsonr(d_norm.iloc[0, 2:], d_norm.iloc[row, 2:]) #Potentially you can take the 2: off as d_norm.iloc[0] vs d_norm.iloc[row] 
-            #And keep the index the same but not reset it, so you can use the index to link back to the d_input
+            if method == 'pearsonr':
+                corr, p_val = scipy.stats.pearsonr(d_norm.iloc[0, 2:], d_norm.iloc[row, 2:]) 
+            elif method == 'mannwhitneyu':
+                corr, p_val = scipy.stats.mannwhitneyu(d_norm.iloc[0, 2:], d_norm.iloc[row, 2:]) 
+            elif method == 'kruskal':
+                corr, p_val = scipy.stats.kruskal(d_norm.iloc[0, 2:], d_norm.iloc[row, 2:]) 
             if p_val < 0.05:
                 drop_list.append(row)
                 cluster += [feature_2]
