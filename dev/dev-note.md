@@ -63,7 +63,10 @@ task for finals:
 2. package test/release
 3. travis CI
 4. clean repo & documentation
-5. showcase notebook & ppt for standup
+5. showcase notebook & ppt for standup -- GUI if possible -- Django, Flask, Dash, tkinter
+
+1. prediction of dilution rate -- collinearity -- firstly plot the correlation plot, find significant features using P value
+2. identification of multilple sources
 
 Multiple source note:
 !!for now only the ID is possible, if further accurate prediction/calculation needed, the matrix effect must besolved first for the back calculations
