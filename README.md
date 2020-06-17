@@ -74,7 +74,9 @@ A random forest model is integrated in the function as optional assessing tool f
 
 ![import](./doc/pic/import.png)
 
-Data from different experiments will be aligned together according to user defined error range. Supported export formats: .csv/.xlsx
+Data from different experiments will be aligned together according to user defined error range. 
+
+Supported export formats: .csv/.xlsx
 
 ![alignment](./doc/pic/alignment.png)
 
