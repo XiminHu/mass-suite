@@ -17,6 +17,14 @@ The mass-suite package is also providing a data mining option for the feature cl
 #### Release date: 
 
 ## Installation & major dependencies
+#### Activating the virtual environment
+* Included within the root of the repository is a virtual environment
+pre-suited to run `mss`
+  * The virtual environment is located within environment.yml
+  * To create the virtual environment from the .yml file:
+  `conda env create -f environment.yml`
+  * To activate the virtual environment:
+  `conda activate mss`
 
 Mass-suite requires major dependencies:
 
@@ -147,3 +155,7 @@ The package is open source and can be utilized under MIT license. Please find th
 ## Call for contributions
 
 Mass-suite welcomes help from wide range of different backgrounds. As the package will keep developing, suggestions and improvements are always appreciated. If you are interested in testing the package using your own MS data, giving suggestions for adding modules or improving existing ones, have some question or seeking for cooperation, please contact the main contributor(xhu66@uw.edu).
+
+### Special Thanks
+  * A big shout to Professor Dave Beck, Professor Edward Kolodziej, Katherine Peter, and the Center of Urban Water for all of their help during the development of this package.
+
