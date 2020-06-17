@@ -8,7 +8,9 @@ This package is initiated from the University of Washington eScience capstone pr
 
 Mass-suite is a package used for general MS data process and advanced data analysis.
 
-It provided a full capacity including data import, alignment, noise removal, end member extraction, visualization and fragment searching using online database.
+It provided a full capacity including data import, alignment, noise removal, visualization and fragment searching using online database.
+
+The mass-suite package is also providing a data mining option for the feature clustering using dilution datasets, aiming at dilution prediction, source tracking and matrix effect assessment.
 
 #### Contributers: Ximin Hu, Derek Mar, Nozomi Suzuki, Bowei Zhang
 #### Release date: 
@@ -16,7 +18,7 @@ It provided a full capacity including data import, alignment, noise removal, end
 ## Installation & major dependencies
 
 ## Organization of the project
-The project has the following structure:
+The project has the following major structure:
    
    
     mass-suite/
