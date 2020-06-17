@@ -131,7 +131,7 @@ def ms_cluster(d_input, select_keyword, normalization='linear', visual=False, d_
         if visual == True:
             for i,k in enumerate(unique_labels):
                 indexlist = list(np.argwhere(labels==k).reshape(1,-1)[0])
-                sns.clustermap(d_norm.iloc[indexlist].values,cmap='Reds',col_cluster=True,yticklabels=False,xticklabels=False,figsize=(5,5))
+                sns.clustermap(d_norm.iloc[indexlist].values,cmap='Reds',col_cluster=False,yticklabels=False,xticklabels=False,figsize=(5,5))
                 plt.title(str(dbscan)+'label='+ str(k))
                 plt.show()
         else:
@@ -146,7 +146,7 @@ def ms_cluster(d_input, select_keyword, normalization='linear', visual=False, d_
         if visual == True:
             for i,k in enumerate(unique_labels):
                 indexlist = list(np.argwhere(labels==k).reshape(1,-1)[0])
-                sns.clustermap(d_norm.iloc[indexlist].values,cmap='Reds',col_cluster=True,yticklabels=False,xticklabels=False,figsize=(5,5))
+                sns.clustermap(d_norm.iloc[indexlist].values,cmap='Reds',col_cluster=False,yticklabels=False,xticklabels=False,figsize=(5,5))
                 plt.title(str(optics)+'label='+ str(k))
                 plt.show()
         else:
