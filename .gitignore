@@ -1,3 +1,13 @@
+mssmain-modelex.py
+model_training/models/
+summary-4rd-newbatchincluded.csv
+summary-3rdedit.csv
+summary-2ndedit.csv
+idea.txt
+UW DIRECT capstone template_XH_022420.docx
+*.mzML
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

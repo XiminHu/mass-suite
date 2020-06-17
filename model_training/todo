@@ -1,6 +1,0 @@
-1. Adjust the number of hidden layer and nodes per layer
-2. Adjust the batch size
-3. More functionalities(Produce score of quality of graphs)
-4. Write prediction function using existing model
-5. Try Lasso and Ridge regularizer
-6. Change weight
