@@ -94,9 +94,11 @@ Current clustering algorithms:
 * Non-parametric hypothesis test (please refer to trend_calc function)
 
 example output:
+
 ![cluster](./doc/pic/cluster.png)
 
 cluster report output:
+
 ![report](./doc/pic/cluster_report.png)
 
 After clustering, modeling function is provided to predict the dilution rate from samples and catch the behavior of individual clusters
@@ -104,6 +106,7 @@ After clustering, modeling function is provided to predict the dilution rate fro
 ```things to add here```
 
 Simple source identification tool is also incorporated in this module:
+
 ![source](./doc/pic/source.png)
 
 ### MS data visualization & interactive plots(extended work)
