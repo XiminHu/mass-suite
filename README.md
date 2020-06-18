@@ -56,18 +56,28 @@ The project has the following major structure:
    
    
     mass-suite/
-      |- README.md
       |- mss/
          |- __init__.py
+         |- alignment.py
+         |- dm.py
+         |- frag.py
+         |- mssdata.py
+         |- mssmain.py
+         |- version.py
          |- visreader.py
+         |- *.pkl
          |- tests/
             |- __init__.py
-            |- test.py
+            |- test_*.py
          |- dev/  
             |- *.ipynb
+      |- script/
+         |- mss_processor.py
       |- doc/
       |- example_data/
+      |- README.md
       |- LICENSE
+      |- environment.yml
 
 ## Featured modules
 
@@ -113,11 +123,25 @@ cluster report output:
 
 After clustering, modeling function is provided to predict the dilution rate from samples and catch the behavior of individual clusters
 
-```things to add here```
+```feature_model(d_transpose, cluster_algorithm=True, model_method='ensemble_bagging_svc', report=True)```
+
+User can define either to use all features for modeling or individual clusters for modeling
+
+Currently supporting models: linear regression, random forest regression, ensemble bagging regression
+
+Model assessment report is also optional upon function settings:
+
+![modeling](./doc/pic/model_report.png)
+
+User can use the model and cluster information for new sample prediction:
+
+![predict](./doc/pic/pred.png) 
 
 Simple source identification tool is also incorporated in this module:
 
 ![source](./doc/pic/source.png)
+
+Please refer to function documentation for more details.
 
 ### MS data visualization & interactive plots(extended work)
 
