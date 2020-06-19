@@ -1,40 +1,26 @@
 import pymzml
 from tqdm import tqdm
-import matplotlib.pyplot as plt
 import numpy as np
 
-import pyteomics
-from pyteomics import mzml, auxiliary
-import matplotlib.pyplot as plt
-import numpy as np
-import math
-import plotly.graph_objects as go
-import re
 from scipy.integrate import simps
 import pandas as pd
 
 import peakutils
-from peakutils.plot import plot as pplot
 
-import webbrowser
 import glob
 from pathlib import Path
-from IPython.display import clear_output
-
-from scipy.interpolate import interp1d
 import scipy
-from scipy import stats
 
 # Modeling modules
-#from tensorflow import keras
-#import h5py
+# from tensorflow import keras
+# import h5py
 from mssdata import peakmodel
 
 
 def get_scans(path, ms_all=False, ms_lv=1):
     '''
-    The function is used to reorganize the pymzml reading into a list that will have better access
-
+    The function is used to reorganize the pymzml reading
+    into a list that will have better access
     path: input mzml path
     ms_all: if you want all the ms_level be check
     ms_lv: ms_level you want to export
@@ -44,11 +30,11 @@ def get_scans(path, ms_all=False, ms_lv=1):
     run = pymzml.run.Reader(path)
 
     scans = []
-    if ms_all == False:
+    if ms_all is False:
         for scan in run:
             if scan.ms_level == ms_lv:
                 scans.append(scan)
-    elif ms_all == True:
+    elif ms_all is True:
         for scan in run:
             scans.append(scan)
 
@@ -58,7 +44,8 @@ def get_scans(path, ms_all=False, ms_lv=1):
 # Noise removal
 def noise_removal(mzml_scans, int_thres=5000):
     '''
-    Remove mz&i pairs that i lower than int_thres from whole mzml file, looping through scans
+    Remove mz&i pairs that i lower than int_thres
+    from whole mzml file, looping through scans
     the output will overwrite the original mzml file
     '''
     for scan in mzml_scans:
@@ -96,7 +83,7 @@ def mz_locator(input_list, mz, error, select_app=True):
                 target_mz.append(mzs)
                 target_index.append(i)
 
-    if select_app == False:
+    if select_app is False:
         if len(target_mz) != 0:
             target_error = [abs(i - mz) for i in target_mz]
             minpos = target_error.index(min(target_error))
@@ -105,30 +92,39 @@ def mz_locator(input_list, mz, error, select_app=True):
         else:
             t_mz = 0
             t_i = 'NA'
-    if select_app == True:
+    if select_app is True:
         t_mz = target_mz
         t_i = target_index
 
     return t_mz, t_i
 
 # Read model for peak assessment
+
+
 Pmodel = peakmodel.rf_model_t
 
 
-def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01, thr=0.02, min_d=1, rt_window=1.5, peak_area_thres=1e5, min_scan=15, max_scan=200, max_peak=5, min_scan_window=20, sn_range=7):
+def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
+              thr=0.02, min_d=1, rt_window=1.5, peak_area_thres=1e5,
+              min_scan=15, max_scan=200, max_peak=5,
+              min_scan_window=20, sn_range=7):
     '''
     firstly get rt, intensity from given mz and error out of the mzml file
     Then find peak on the intensity array, represent as index --> index
-    Find peak range by looping from peak index forward/backward until hit the peak_base --> l_range,h_range. peakspan = h_range - l_range
-    Trim/correct peak range is too small or too large, using min_scan/max_scan,min_scan_window --> trimed l/h_range
-    Integration of peak based on the given range using simp function --> peakarea
+    Find peak range by looping from peak index forward/backward
+    until hit the peak_base --> l_range,h_range. peakspan = h_range - l_range
+    Trim/correct peak range is too small or too large,
+    using min_scan/max_scan,min_scan_window --> trimed l/h_range
+    Integration of peak based on the given range
+    using simp function --> peakarea
     '''
 
     # Important funciont, may need to be extracted out later
     # Data output from the chromatogram_plot function
     def ms_chromatogram_list(mzml_scans, input_mz, error):
         '''
-        Generate a peak list for specific input_mz over whole rt period from the mzml file
+        Generate a peak list for specific input_mz over
+        whole rt period from the mzml file
         ***Most useful function!
         '''
 
@@ -153,7 +149,8 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01, t
 
     # Get rt_window corresponded scan number
     scan_window = int(
-        (rt_window / (rt[int(len(intensity) / 2)] - rt[int(len(intensity) / 2) - 1])) / 2)
+                      (rt_window / (rt[int(len(intensity) / 2)] -
+                       rt[int(len(intensity) / 2) - 1])) / 2)
     rt_conversion_rate = rt[1] - rt[0]
     # Get peak index
     indexes = peakutils.indexes(intensity, thres=thr, min_dist=min_d)
@@ -172,12 +169,16 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01, t
         while intensity[h_range] >= base_intensity:
             h_range += 1
             if intensity[h_range] < half_intensity:  # potentially record this
-                if h_range - index > 4:  # fit r2 score, keep record https://stackoverflow.com/questions/55649356/how-can-i-detect-if-trend-is-increasing-or-decreasing-in-time-series as alternative
+                if h_range - index > 4:  # fit r2 score,
+                    # keep record
+                    # https://stackoverflow.com/questions/55649356/
+                    # how-can-i-detect-if-trend-is-increasing-or-
+                    # decreasing-in-time-series as alternative
                     x = np.linspace(h_range - 2, h_range, 3)
                     y = intensity[h_range - 2: h_range + 1]
-                    slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(
-                        x, y)
-#                     print(rt[h_range],r_value)
+                    (slope, intercept, r_value,
+                     p_value, std_err) = scipy.stats.linregress(x, y)
+                    # print(rt[h_range],r_value)
                     if abs(r_value) < 0.6:
                         break
                     elif h_range > len(intensity) - 2:
@@ -197,12 +198,14 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01, t
                 l_range = index - scan_window
                 h_range = index + scan_window
                 peak_range = intensity[l_range:h_range]
-                #print(index + scan_window)
+                # print(index + scan_window)
 
         # Calculate for S/N
         signal = intensity[index]
-        neighbour_blank = intensity[
-            l_range - sn_range: l_range] + intensity[h_range + 1: h_range + sn_range + 1]
+        neighbour_blank = (intensity[
+                           l_range - sn_range: l_range] +
+                           intensity[h_range + 1: h_range +
+                           sn_range + 1])
         noise = max(neighbour_blank)
         if noise != 0:
             sn = round(signal / noise, 3)
@@ -244,37 +247,40 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01, t
                 background_area = (h_range - l_range) * height
                 ab_ratio = round(integration_result / background_area, 3)
 
-                # Awaiting to be added: model prediction as the assessment score column
+                # Awaiting to be added:
+                # model prediction as the assessment score column
                 # score = model.fit(X_para from all above)
-                if enable_score == True:
+                if enable_score is True:
                     w = rt[h_range] - rt[l_range]
                     t_r = (h_half - l_half) * rt_conversion_rate
                     l_width = rt[index] - rt[l_range]
                     r_width = rt[h_range] - rt[index]
                     assym = r_width / l_width
-                    var = w ** 2 / (1.764 * ((r_width / l_width)
-                                             ** 2) - 11.15 * (r_width / l_width) + 28)
-
-                    x_peak = [w, t_r, l_width, r_width, assym, integration_result,
-                              sn, hw_ratio, ab_ratio, height, ma, mb, ma + mb, mb / ma, var]
+                    var = (w ** 2 / (1.764 * ((r_width / l_width)
+                           ** 2) - 11.15 * (r_width / l_width) + 28))
+                    x_peak = [w, t_r, l_width, r_width, assym,
+                              integration_result, sn, hw_ratio, ab_ratio,
+                              height, ma, mb, ma + mb, mb / ma, var]
                     x_input = np.asarray(x_peak)
                     # score = np.argmax(Pmodel.predict(x_input.reshape(1,-1)))
                     # for tensorflow
                     score = int(Pmodel.predict(x_input.reshape(1, -1)))
-                elif enable_score == False:
+                elif enable_score is False:
                     score = 1
                 # final result append score
 
                 # appending to result
                 if len(result_dict) == 0:
-                    result_dict.update(
-                        {index: [l_range, h_range, integration_result, sn, score]})
+                    (result_dict.update(
+                     {index: [l_range, h_range,
+                      integration_result, sn, score]}))
                 # Compare with previous item
                 elif integration_result != list(result_dict.values())[-1][2]:
                     s_window = abs(index - list(result_dict.keys())[-1])
                     if s_window > min_scan_window:
-                        result_dict.update(
-                            {index: [l_range, h_range, integration_result, sn, score]})
+                        (result_dict.update(
+                         {index: [l_range, h_range, integration_result,
+                          sn, score]}))
 
         # Filtering:
         # 1. delete results that l_range/h_range within 5 scans
@@ -289,9 +295,12 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01, t
 
 
 # Code review
-def peak_list(mzml_scans, err_ppm=20, enable_score=True, mz_c_thres=5, peak_base=0.005, thr=0.02, min_d=1, rt_window=1.5, peak_area_thres=1e5, min_scan=7, scan_thres=7):
+def peak_list(mzml_scans, err_ppm=20, enable_score=True, mz_c_thres=5,
+              peak_base=0.005, thr=0.02, min_d=1, rt_window=1.5,
+              peak_area_thres=1e5, min_scan=7, scan_thres=7):
     '''
-    Generate a dataframe by looping throughout the whole mz space from a given mzml file
+    Generate a dataframe by looping throughout the
+    whole mz space from a given mzml file
     ref to peak_picking function
     Q to solve: how to correctly select mz slice?? see mz_locator
     '''
@@ -339,7 +348,7 @@ def peak_list(mzml_scans, err_ppm=20, enable_score=True, mz_c_thres=5, peak_base
     for mz in tqdm(mzlist):
         try:
             peak_dict = peak_pick(mzml_scans, mz, err_ppm, enable_score)
-        except:
+        except Exception:
             pass
 
         if len(peak_dict) != 0:
@@ -374,7 +383,7 @@ def batch_scans(path, remove_noise=True, thres_noise=1000):
     file_list = []
     for file in tqdm(all_files):
         scan = get_scans(file)
-        if remove_noise == True:
+        if remove_noise is True:
             noise_removal(scan, thres_noise)
         scans.append(scan)
         file_list.append(Path(file).name)
