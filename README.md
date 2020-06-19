@@ -8,7 +8,7 @@
 [![Python](https://img.shields.io/pypi/pyversions/pandas)](https://img.shields.io/pypi/pyversions/pandas)
 [![Issues](https://img.shields.io/github/issues/XiminHu/mass-suite)](https://img.shields.io/github/issues/XiminHu/mass-suite)
 [![Dependencies](https://img.shields.io/librariesio/github/XiminHu/mass-suite)](https://img.shields.io/librariesio/github/XiminHu/mass-suite)
-[![Activity](https://img.shields.io/github/commit-activity/w/XiminHu/mass-suite)](https://img.shields.io/github/commit-activity/w/XiminHu/mass-suite)
+[![File Size](https://img.shields.io/github/repo-size/XiminHu/mass-suite?color=pink)](https://img.shields.io/github/repo-size/XiminHu/mass-suite?color=pink)
 [![Last Commit](https://img.shields.io/github/last-commit/XiminHu/mass-suite)](https://img.shields.io/github/last-commit/XiminHu/mass-suite)
 
 This package is initiated from the University of Washington eScience capstone project.
