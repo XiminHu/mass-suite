@@ -10,12 +10,11 @@ import peakutils
 import glob
 from pathlib import Path
 import scipy
-import mss
 from mss import mssdata
 # Modeling modules
 # from tensorflow import keras
 # import h5py
-from mssdata import peakmodel
+# from mssdata import peakmodel
 
 
 def get_scans(path, ms_all=False, ms_lv=1):
@@ -102,7 +101,7 @@ def mz_locator(input_list, mz, error, select_app=True):
 # Read model for peak assessment
 
 
-Pmodel = peakmodel.rf_model_t
+Pmodel = mssdata.peakmodel.rf_model_t
 
 
 def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
