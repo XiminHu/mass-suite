@@ -2,10 +2,10 @@
 
 [![Build Status](https://travis-ci.com/XiminHu/mass-suite.svg?branch=master)](https://travis-ci.com/XiminHu/mass-suite)
 [![Coverage Status](https://coveralls.io/repos/github/XiminHu/mass-suite/badge.svg?branch=master)](https://coveralls.io/github/XiminHu/mass-suite?branch=master)
-[![License](https://img.shields.io/github/license/XiminHu/mass-suite)]
+[![License](https://img.shields.io/github/license/XiminHu/mass-suite)](https://img.shields.io/github/license/XiminHu/mass-suite)
 [![Stars](https://img.shields.io/github/stars/XiminHu/mass-suite)]
 [![Forks](https://img.shields.io/github/forks/XiminHu/mass-suite)]
-[![Twitter](https://img.shields.io/twitter/url?style=social)]
+[![Vulnerabilities](https://img.shields.io/snyk/vulnerabilities/github/nsuzuki97/https://github.com/XiminHu/mass-suite/badge-maker/package.json)]
 
 This package is initiated from the University of Washington eScience capstone project.
 
