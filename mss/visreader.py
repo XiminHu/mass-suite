@@ -68,7 +68,7 @@ def ms_plot(mzml_scans, time, interactive=False, search=False, source='MoNA'):
         plt.clf()
         fig = go.Figure([go.Bar(x=mz, y=ints, marker_color='red', width=0.5,
                         hovertemplate=
-                        'Int: %{y}'+
+                        'Int: %{y}' +
                         '<br>m/z: %{x}<br>')])
         fig.update_traces(marker_color='rgb(158,202,225)', marker_line_color='rgb(0,0,0)',
                   marker_line_width=0.5, opacity=1)
@@ -83,30 +83,31 @@ def ms_plot(mzml_scans, time, interactive=False, search=False, source='MoNA'):
                     exponentformat='e',
                     title='Intensity'))
         fig.show()
-    
+
     elif interactive == False:
-        plt.figure(figsize=(10,5))
+        plt.figure(figsize=(10, 5))
         plt.bar(mz, ints, width=1.0)
         plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
         plt.xlabel('m/z')
         plt.ylabel('Intensity')
         plt.title('MS1 spectrum')
-    
-    if search==True:
+
+    if search == True:
         for i in range(len(mz)):
             if i == 0:
-                list_string = str(round(mz[i],4)) + ' ' + str(round(ints[i],1)) + '\r'
+                list_string = str(round(mz[i], 4)) + ' ' + str(round(ints[i], 1)) + '\r'
             else:
-                list_string += str(round(mz[i],4)) + ' ' + str(round(ints[i],1)) + '\r'
+                list_string += str(round(mz[i], 4)) + ' ' + str(round(ints[i], 1)) + '\r'
         pyperclip.copy(list_string)
-        if source=='MoNA':
+        if source == 'MoNA':
             webbrowser.open("https://mona.fiehnlab.ucdavis.edu/spectra/search")
-        elif source=='metfrag':
+        elif source == 'metfrag':
             webbrowser.open("https://msbi.ipb-halle.de/MetFragBeta/")
-            
+
     return
 
-def frag_plot(mzml_scans, precursor, error=20, scan_index=0, noise_thr = 50, interactive=False, search=False, source='MoNA'): 
+
+def frag_plot(mzml_scans, precursor, error=20, scan_index=0, noise_thr=50, interactive=False, search=False, source='MoNA'):
     '''
     Interactive spectrum plot with nearest retention time from the given scan
     mzml_scans: mzfile
@@ -131,9 +132,9 @@ def frag_plot(mzml_scans, precursor, error=20, scan_index=0, noise_thr = 50, int
         mz = plot_scan.mz
         ints = plot_scan.i
         rt = plot_scan.scan_time[0]
-        print('Precursor:', round(plot_scan.selected_precursors[0]['mz'],4), 'precursor intensity:', round(plot_scan.selected_precursors[0]['i'],1))
+        print('Precursor:', round(plot_scan.selected_precursors[0]['mz'], 4), 'precursor intensity:', round(plot_scan.selected_precursors[0]['i'], 1))
         print('Scan time:', round(plot_scan.scan_time[0], 2), 'minute')
-        
+
         if interactive == True:
             plt.clf()
             fig = go.Figure([go.Bar(x=mz, y=ints, marker_color = 'red', width = 0.5,
@@ -163,12 +164,12 @@ def frag_plot(mzml_scans, precursor, error=20, scan_index=0, noise_thr = 50, int
             plt.title('MS1 spectrum')
             plt.xlim(0,)
 
-        if search==True:
+        if search == True:
             for i in range(len(mz)):
                 if i == 0:
-                    list_string = str(round(mz[i],4)) + ' ' + str(round(ints[i],1)) + '\r'
+                    list_string = str(round(mz[i], 4)) + ' ' + str(round(ints[i], 1)) + '\r'
                 else:
-                    list_string += str(round(mz[i],4)) + ' ' + str(round(ints[i],1)) + '\r'
+                    list_string += str(round(mz[i], 4)) + ' ' + str(round(ints[i], 1)) + '\r'
             pyperclip.copy(list_string)
             if source == 'MoNA':
                 webbrowser.open("https://mona.fiehnlab.ucdavis.edu/spectra/search")
@@ -180,7 +181,8 @@ def frag_plot(mzml_scans, precursor, error=20, scan_index=0, noise_thr = 50, int
 
     return
 
-def mz_locator(input_list, mz, error, select_app=True): #updated to select_app, when false only select closest one, when true append all, # use as a backdoor for now if closest algorithm messed up
+
+def mz_locator(input_list, mz, error, select_app=True):  # updated to select_app, when false only select closest one, when true append all, # use as a backdoor for now if closest algorithm messed up
     '''
     Find specific mzs from given mz and error range out from a given mz array
     input list: mz list
