@@ -22,7 +22,7 @@ class test_mssmain(unittest.TestCase):
     def test_noise_removal(self):
         path = '../../example_data/ex_1.mzML'
         test_scan = mssmain.get_scans(path)
-        test_scan = mssmain.noise_removal(test_scan)
+        mssmain.noise_removal(test_scan)
         assert np.where(test_scan[0].i < 5000) == 0,\
             "noise didn't properly removed"
         return
@@ -50,7 +50,7 @@ class test_mssmain(unittest.TestCase):
     def test_peak_list(self):  # More to add during later development
         path = '../../example_data/ex_1.mzML'
         test_scan = mssmain.get_scans(path)
-        d_test = mss.peak_list(test_scan[:200], 20)
+        d_test = mssmain.peak_list(test_scan[:200], 20)
         assert d_test.shape == (47, 5), "feature seeking is off"
         return
 

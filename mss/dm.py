@@ -577,6 +577,7 @@ def feature_model(d_input, cluster_algorithm=False, test_frac=0.5,
                           intercept_val)
                     print('The model score for cluster', value, 'is:',
                           score_val)
+                    plt.figure()
                     plt.scatter(ytest, ypred, label=value)
                     plt.xlabel('Actual dilution (mL)')
                     plt.ylabel('Predicted dilution (mL)')
@@ -590,6 +591,7 @@ def feature_model(d_input, cluster_algorithm=False, test_frac=0.5,
                     print('The model score for cluster', value, 'is:',
                           score_val)
                     ypred = pred[value]
+                    plt.figure()
                     plt.scatter(ytest, ypred, label=value)
                     plt.xlabel('Actual dilution (mL)')
                     plt.ylabel('Predicted dilution (mL)')
