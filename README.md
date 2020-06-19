@@ -6,6 +6,8 @@
 [![Stars](https://img.shields.io/github/stars/XiminHu/mass-suite)](https://img.shields.io/github/stars/XiminHu/mass-suite)
 [![Forks](https://img.shields.io/github/forks/XiminHu/mass-suite)](https://img.shields.io/github/forks/XiminHu/mass-suite)
 [![Python](https://img.shields.io/pypi/pyversions/pandas)](https://img.shields.io/pypi/pyversions/pandas)
+[![Issues](https://img.shields.io/github/issues/XiminHu/mass-suite)](https://img.shields.io/github/issues/XiminHu/mass-suite)
+[![Dependencies](https://img.shields.io/librariesio/github/XiminHu/mass-suite)](https://img.shields.io/librariesio/github/XiminHu/mass-suite)
 
 This package is initiated from the University of Washington eScience capstone project.
 
