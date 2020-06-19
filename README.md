@@ -2,8 +2,8 @@
 
 [![Build Status](https://travis-ci.com/XiminHu/mass-suite.svg?branch=master)](https://travis-ci.com/XiminHu/mass-suite)
 [![Coverage Status](https://coveralls.io/repos/github/XiminHu/mass-suite/badge.svg?branch=master)](https://coveralls.io/github/XiminHu/mass-suite?branch=master)
-[![License](https://coveralls.io/repos/github/XiminHu/mass-suite/badge.svg?branch=master)](https://img.shields.io/github/license/XiminHu/mass-suite)
-[![Stars](https://coveralls.io/repos/github/XiminHu/mass-suite/badge.svg?branch=master)](https://img.shields.io/github/stars/XiminHu/mass-suite)
+[![License](https://img.shields.io/github/license/XiminHu/mass-suite)
+[![Stars]](https://img.shields.io/github/stars/XiminHu/mass-suite)
 
 This package is initiated from the University of Washington eScience capstone project.
 
