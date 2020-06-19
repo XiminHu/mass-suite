@@ -10,7 +10,7 @@ from mss import dm
 class test_dm(unittest.TestCase):
     def test_data_prep(self):
         '''test data prep function'''
-        path = '../example_data/clustering/sample1114.csv'
+        path = 'data/sample1114.csv'
         d_ms = pd.read_csv(path)
         keys = ['CEC', 'Blank', 'ISTD', 'Wash', 'Shutdown']
         d_test = dm.data_prep(d_ms, keys, rt_range=[1, 30],
@@ -21,7 +21,7 @@ class test_dm(unittest.TestCase):
         return
 
     def test_ms_cluster(self):
-        path = '../example_data/clustering/sample1114.csv'
+        path = 'data/sample1114.csv'
         keys = ['CEC', 'Blank', 'ISTD', 'Wash', 'Shutdown']
         d_ms = pd.read_csv(path)
         d_sample = dm.data_prep(d_ms, keys, rt_range=[1, 30],
@@ -37,7 +37,7 @@ class test_dm(unittest.TestCase):
         return
 
     def test_source_label(self):
-        path = '../example_data/clustering/sample1114.csv'
+        path = 'data/sample1114.csv'
         keys = ['CEC', 'Blank', 'ISTD', 'Wash', 'Shutdown']
         d_ms = pd.read_csv(path)
         d_sample = dm.data_prep(d_ms, keys, rt_range=[1, 30],
@@ -53,7 +53,7 @@ class test_dm(unittest.TestCase):
         return
 
     def test_source_report(self):
-        path = '../example_data/clustering/sample1114.csv'
+        path = 'data/sample1114.csv'
         keys = ['CEC', 'Blank', 'ISTD', 'Wash', 'Shutdown']
         d_ms = pd.read_csv(path)
         d_sample = dm.data_prep(d_ms, keys, rt_range=[1, 30],

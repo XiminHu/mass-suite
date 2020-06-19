@@ -11,7 +11,7 @@ class test_mssmain(unittest.TestCase):
 
     def test_get_scans(self):
         """Tests stack functionlity"""
-        path = '../../example_data/ex_1.mzML'
+        path = 'data/ex_1.mzML'
         test_scan = mssmain.get_scans(path)
         assert type(test_scan) == list, "output type is wrong"
         assert len(test_scan) == 4061, "output length is wrong"
@@ -20,7 +20,7 @@ class test_mssmain(unittest.TestCase):
         return
 
     def test_noise_removal(self):
-        path = '../../example_data/ex_1.mzML'
+        path = 'data/ex_1.mzML'
         test_scan = mssmain.get_scans(path)
         mssmain.noise_removal(test_scan)
         assert np.where(test_scan[0].i < 5000) == 0,\
@@ -28,7 +28,7 @@ class test_mssmain(unittest.TestCase):
         return
 
     def test_mzlocator(self):
-        path = '../../example_data/ex_1.mzML'
+        path = 'data/ex_1.mzML'
         test_scan = mssmain.get_scans(path)
         mzlist = mssmain.mz_locator(test_scan[0].mz, 117.113, 20)
         assert type(mzlist) == tuple, "output type is wrong"
@@ -38,7 +38,7 @@ class test_mssmain(unittest.TestCase):
         return
 
     def test_peak_pick(self):  # More to add during later development
-        path = '../../example_data/ex_1.mzML'
+        path = 'data/ex_1.mzML'
         test_scan = mssmain.get_scans(path)
         test_dict = mssmain.peak_pick(test_scan, 299.146, 20)
         assert type(test_dict) == dict, "output type is wrong"
@@ -48,14 +48,14 @@ class test_mssmain(unittest.TestCase):
         return
 
     def test_peak_list(self):  # More to add during later development
-        path = '../../example_data/ex_1.mzML'
+        path = 'data/ex_1.mzML'
         test_scan = mssmain.get_scans(path)
         d_test = mssmain.peak_list(test_scan[:200], 20)
         assert d_test.shape == (47, 5), "feature seeking is off"
         return
 
-    def test_batch_scans(self):
-        return
+#    def test_batch_scans(self):
+#       return
 
-    def test_batch_peak(self):
-        return
+#    def test_batch_peak(self):
+#        return
