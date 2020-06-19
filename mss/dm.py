@@ -269,9 +269,9 @@ def trend_calc(d_input, select_keyword, min_size=5, normalization='linear',
     cluster_df = pd.DataFrame(append_list)  # Add columns use d_clu
     append_list2 = []
     for k in range(len(noise)):
-        for l in range(len(noise[k])):
-            noise[k][l].loc['Score'] = -1
-            listing2 = np.array(noise[k][l])
+        for n in range(len(noise[k])):
+            noise[k][n].loc['Score'] = -1
+            listing2 = np.array(noise[k][n])
             append_list2.append(listing2)
     noise_df = pd.DataFrame(append_list2)
     final_df = pd.concat([cluster_df, noise_df])
