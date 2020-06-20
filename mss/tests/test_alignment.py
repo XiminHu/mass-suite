@@ -13,25 +13,30 @@ batchpath = data_path + '/example_data/peakdata/mssoutput/'
 class test_alignment(unittest.TestCase):
     def test_stack(self):
         """Tests stack functionlity"""
-        # data_path = os.path.dirname(os.path.join(example_data.__path__[0]))
-        # batchpath = data_path + '/batch/'
-
         a, b = alignment.stack(batchpath)
-        assert len(b) == 2, "output size is wrong"
-        assert type(b) == tuple, "output type is wrong"
-        assert type(b[1].iat[6, 2]) == np.float32, "stacking seems off"
+        assert a > 0, "no files in the folder"
+        assert len(b) > 0, "output size is wrong"
+        assert type(b) == pd.core.frame.DataFrame, "output type is wrong"
+        assert b[b.columns[0]].dtypes == np.float32, "stacking seems off"
+        assert b.columns[0] == 'm/z', 'wrong column'
+        assert b.columns[1] == 'rt', 'wrong column'
+        assert b.columns[2] == 'sn', 'wrong column'
+        assert b.columns[3] == 'score', 'wrong column'
+        assert b.columns[4] == 'peak area', 'wrong column'
 
     def test_realignment(self):
         """Tests realignment functionality"""
-        # data_path = os.path.dirname(os.path.join(example_data.__path__[0]))
-        # batchpath = data_path + '/batch/'
-
         batch_name = 'test1'
         rt_error = 0.05
         MZ_error = 0.015
-        file_type = 'csv'
+        file_type = '.csv'
         b = alignment.realignment(batchpath, batch_name, file_type,
                                   rt_error, MZ_error)
         assert len(b) > 0, "testing realingment length is off"
         assert type(b) == pd.core.frame.DataFrame, "output type is wrong"
-        assert type(b.iat[1, 2]) == np.float32, "realignment seems to be off"
+        assert b[b.columns[0]].dtypes == np.float32, "realignment seems to be off"
+        assert b.columns[0] == 'Average m/z', 'wrong column'
+        assert b.columns[1] == 'Average RT (min)', 'wrong column'
+        assert b.columns[2] == 'Average sn', 'wrong column'
+        assert b.columns[3] == 'Average score', 'wrong column'
+
