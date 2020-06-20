@@ -4,9 +4,9 @@ import pandas as pd
 import numpy as np
 from mss import dm
 import mss
-test_path = os.path.join(mss.__path__[0], 'test')
+test_path = os.path.join(mss.__path__[0], 'tests')
 data_path = os.path.join(test_path, 'data')
-file = 'data/sample1114.csv'
+file = 'sample1114.csv'
 file_path = os.path.join(data_path, file)
 
 # Test update: how to write this type of test in chain

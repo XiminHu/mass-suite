@@ -4,9 +4,9 @@ import numpy as np
 import mss
 from mss import mssmain
 
-test_path = os.path.join(mss.__path__[0], 'test')
+test_path = os.path.join(mss.__path__[0], 'tests')
 data_path = os.path.join(test_path, 'data')
-file = 'data/ex_1.mzML'
+file = 'ex_1.mzML'
 file_path = os.path.join(data_path, file)
 
 
