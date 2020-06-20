@@ -4,14 +4,17 @@ import pandas as pd
 import numpy as np
 from mss import dm
 
+test_path = os.path.join(mss.__path__[0], 'test')
+data_path = os.path.join(test_path,'data')
+file = 'data/sample1114.csv'
+file_path = os.path.join(data_path,file)
 
 # Test update: how to write this type of test in chain
 # output from one function is input for next function
 class test_dm(unittest.TestCase):
     def test_data_prep(self):
         '''test data prep function'''
-        path = 'data/sample1114.csv'
-        d_ms = pd.read_csv(path)
+        d_ms = pd.read_csv(file_path)
         keys = ['CEC', 'Blank', 'ISTD', 'Wash', 'Shutdown']
         d_test = dm.data_prep(d_ms, keys, rt_range=[1, 30],
                               mz_range=[200, 800], area_thres=500,
@@ -21,9 +24,8 @@ class test_dm(unittest.TestCase):
         return
 
     def test_ms_cluster(self):
-        path = 'data/sample1114.csv'
         keys = ['CEC', 'Blank', 'ISTD', 'Wash', 'Shutdown']
-        d_ms = pd.read_csv(path)
+        d_ms = pd.read_csv(file_path)
         d_sample = dm.data_prep(d_ms, keys, rt_range=[1, 30],
                                 mz_range=[200, 800], area_thres=500,
                                 simp_summary=False)
@@ -37,9 +39,8 @@ class test_dm(unittest.TestCase):
         return
 
     def test_source_label(self):
-        path = 'data/sample1114.csv'
         keys = ['CEC', 'Blank', 'ISTD', 'Wash', 'Shutdown']
-        d_ms = pd.read_csv(path)
+        d_ms = pd.read_csv(file_path)
         d_sample = dm.data_prep(d_ms, keys, rt_range=[1, 30],
                                 mz_range=[200, 800], area_thres=500,
                                 simp_summary=False)
@@ -53,9 +54,8 @@ class test_dm(unittest.TestCase):
         return
 
     def test_source_report(self):
-        path = 'data/sample1114.csv'
         keys = ['CEC', 'Blank', 'ISTD', 'Wash', 'Shutdown']
-        d_ms = pd.read_csv(path)
+        d_ms = pd.read_csv(file_path)
         d_sample = dm.data_prep(d_ms, keys, rt_range=[1, 30],
                                 mz_range=[200, 800], area_thres=500,
                                 simp_summary=False)
