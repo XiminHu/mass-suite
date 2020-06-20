@@ -3,10 +3,10 @@ import unittest
 
 import pandas as pd
 import numpy as np
-import example_data
+import mss
 from mss import alignment
 
-data_path = os.path.dirname(os.path.join(example_data.__path__[0]))
+data_path = os.path.dirname(os.path.join(mss.__path__[0]))
 batchpath = data_path + '/example_data/peakdata/mssoutput/'
 
 
