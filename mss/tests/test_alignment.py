@@ -34,9 +34,8 @@ class test_alignment(unittest.TestCase):
                                   rt_error, MZ_error)
         assert len(b) > 0, "testing realingment length is off"
         assert type(b) == pd.core.frame.DataFrame, "output type is wrong"
-        assert b[b.columns[0]].dtypes == np.float32, "realignment seems to be off"
+        assert b[b.columns[0]].dtypes == np.float32, "wrong value type"
         assert b.columns[0] == 'Average m/z', 'wrong column'
         assert b.columns[1] == 'Average RT (min)', 'wrong column'
         assert b.columns[2] == 'Average sn', 'wrong column'
         assert b.columns[3] == 'Average score', 'wrong column'
-
