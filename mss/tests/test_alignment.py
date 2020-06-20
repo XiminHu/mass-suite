@@ -16,10 +16,10 @@ class test_alignment(unittest.TestCase):
         # data_path = os.path.dirname(os.path.join(example_data.__path__[0]))
         # batchpath = data_path + '/batch/'
 
-        a = alignment.stack(batchpath)
-        assert len(a) == 2, "output size is wrong"
-        assert type(a) == tuple, "output type is wrong"
-        assert type(a[1].iat[6, 2]) == np.float32, "stacking seems off"
+        a, b = alignment.stack(batchpath)
+        assert len(b) == 2, "output size is wrong"
+        assert type(b) == tuple, "output type is wrong"
+        assert type(b[1].iat[6, 2]) == np.float32, "stacking seems off"
 
     def test_realignment(self):
         """Tests realignment functionality"""
