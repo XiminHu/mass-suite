@@ -7,7 +7,7 @@ import example_data
 from mss import alignment
 
 data_path = os.path.dirname(os.path.join(example_data.__path__[0]))
-batchpath = data_path + 'peakdata/mssoutput/'
+batchpath = data_path + '/example_data/peakdata/mssoutput/'
 
 
 class test_alignment(unittest.TestCase):
