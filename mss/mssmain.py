@@ -10,7 +10,7 @@ import peakutils
 import glob
 from pathlib import Path
 import scipy
-from mss import mssdata
+import mssdata
 # Modeling modules
 # from tensorflow import keras
 # import h5py
