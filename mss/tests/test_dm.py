@@ -1,16 +1,18 @@
 import unittest
-
+import os
 import pandas as pd
 import numpy as np
 from mss import dm
-
+import mss
 test_path = os.path.join(mss.__path__[0], 'test')
-data_path = os.path.join(test_path,'data')
+data_path = os.path.join(test_path, 'data')
 file = 'data/sample1114.csv'
-file_path = os.path.join(data_path,file)
+file_path = os.path.join(data_path, file)
 
 # Test update: how to write this type of test in chain
 # output from one function is input for next function
+
+
 class test_dm(unittest.TestCase):
     def test_data_prep(self):
         '''test data prep function'''

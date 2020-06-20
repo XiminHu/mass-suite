@@ -5,7 +5,7 @@ import mss
 from mss import mssmain
 
 test_path = os.path.join(mss.__path__[0], 'test')
-data_path = os.path.join(test_path,'data')
+data_path = os.path.join(test_path, 'data')
 file = 'data/ex_1.mzML'
 file_path = os.path.join(data_path, file)
 
