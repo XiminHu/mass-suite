@@ -18,7 +18,7 @@ class test_alignment(unittest.TestCase):
         assert len(b) > 0, "output size is wrong"
         assert type(b) == pd.core.frame.DataFrame, "output type is wrong"
         assert b[b.columns[0]].dtypes == np.float32, "stacking seems off"
-        assert b.columns[0] == 'm/z', 'wrong column'
+        assert len(b.columns) > 0, 'no columns'
         assert b.columns[1] == 'rt', 'wrong column'
         assert b.columns[2] == 'sn', 'wrong column'
         assert b.columns[3] == 'score', 'wrong column'
