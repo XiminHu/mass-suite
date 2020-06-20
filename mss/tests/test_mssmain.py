@@ -1,6 +1,5 @@
 import os
 import unittest
-import numpy as np
 import mss
 from mss import mssmain
 
@@ -48,8 +47,7 @@ class test_mssmain(unittest.TestCase):
 
     def test_peak_list(self):  # More to add during later development
         test_scan = mssmain.get_scans(file_path)
-        d_test = mssmain.peak_list(test_scan[:200], 20, \
-            enable_score=True)
+        d_test = mssmain.peak_list(test_scan[:200], 20, enable_score=True)
         assert d_test.shape[1] == 5, "score column is off"
         assert d_test.score.dtype == 'int64', "wrong score type"
         assert d_test.shape[0] == 47, "wrong feature seeked"
