@@ -24,7 +24,7 @@ class test_mssmain(unittest.TestCase):
     def test_noise_removal(self):
         test_scan = mssmain.get_scans(file_path)
         mssmain.noise_removal(test_scan)
-        assert np.where(test_scan[0].i < 5000) == 0,\
+        assert sum(test_scan[0].i <= 5000) == 0,\
             "noise didn't properly removed"
         return
 
@@ -48,8 +48,11 @@ class test_mssmain(unittest.TestCase):
 
     def test_peak_list(self):  # More to add during later development
         test_scan = mssmain.get_scans(file_path)
-        d_test = mssmain.peak_list(test_scan[:200], 20)
-        assert d_test.shape == (47, 5), "feature seeking is off"
+        d_test = mssmain.peak_list(test_scan[:200], 20, \
+            enable_score=True)
+        assert d_test.shape[1] == 5, "score column is off"
+        assert d_test.score.dtype == 'int64', "wrong score type"
+        assert d_test.shape[0] == 47, "wrong feature seeked"
         return
 
 #    def test_batch_scans(self):

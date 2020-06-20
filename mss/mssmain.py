@@ -10,7 +10,9 @@ import peakutils
 import glob
 from pathlib import Path
 import scipy
-from mss import mssdata
+import pickle
+import os
+# from mss import mssdata
 # Modeling modules
 # from tensorflow import keras
 # import h5py
@@ -99,9 +101,10 @@ def mz_locator(input_list, mz, error, select_app=True):
     return t_mz, t_i
 
 # Read model for peak assessment
-
-
-Pmodel = mssdata.peakmodel.rf_model_t
+this_dir, this_filename = os.path.split(__file__)
+Model_file_t = os.path.join(this_dir, 'rfmodel_tuned.pkl')
+rf_model_t = pickle.load(open(Model_file_t, 'rb'))
+Pmodel = rf_model_t
 
 
 def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
