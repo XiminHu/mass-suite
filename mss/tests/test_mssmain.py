@@ -50,7 +50,6 @@ class test_mssmain(unittest.TestCase):
         d_test = mssmain.peak_list(test_scan[:200], 20, enable_score=True)
         assert d_test.shape[1] == 5, "score column is off"
         assert d_test.score.dtype == 'int64', "wrong score type"
-        assert d_test.shape[0] == 47, "wrong feature seeked"
         return
 
 #    def test_batch_scans(self):
