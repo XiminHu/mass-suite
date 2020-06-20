@@ -17,8 +17,8 @@ def stack(batch_path):
     # Reading in files into a list
     for files in range(num_files):
         sample = os.listdir(batch_path)[files]
-        sample_df = pd.read_csv(batch_path + sample, usecols=['rt',
-                                'm/z', 'sn', 'score', 'peak area'],
+        sample_df = pd.read_csv(batch_path + sample, usecols=['m/z',
+                                'rt', 'sn', 'score', 'peak area'],
                                 dtype=np.float32)
         all_samples += [sample_df]
     # Combining all the dataframes into one
