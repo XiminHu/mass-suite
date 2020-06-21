@@ -84,6 +84,16 @@ class test_dm(unittest.TestCase):
         d_test = dm.trend_calc(d_sample, key, min_size=5,
                                normalization='zscore',
                                method='pearsonr', visual=False)
+        d_test1 = dm.trend_calc(d_sample, key, min_size=5,
+                                normalization='log',
+                                method='mannwhitneyu', visual=False)
+        d_test2 = dm.trend_calc(d_sample, key, min_size=5,
+                                normalization='linear',
+                                method='kruskal', visual=False)
         assert len(d_test) > 0, 'no output'
         assert type(d_test) == pd.core.frame.DataFrame, 'wrong output'
+        assert len(d_test1) > 0, 'no output'
+        assert type(d_test1) == pd.core.frame.DataFrame, 'wrong output'
+        assert len(d_test2) > 0, 'no output'
+        assert type(d_test2) == pd.core.frame.DataFrame, 'wrong output'
         return
