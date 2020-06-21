@@ -241,8 +241,8 @@ def trend_calc(d_input, select_keyword, min_size=5, normalization='linear',
                 corr, p_val = scipy.stats.pearsonr(d_norm.iloc[0, 2:],
                                                    d_norm.iloc[row, 2:])
             elif method == 'mannwhitneyu':
-                corr, p_val = scipy.stats.mannwhitneyu(d_norm.iloc[0, 2:],
-                                                       d_norm.iloc[row, 2:])
+                corr, p_val = (scipy.stats.mannwhitneyu(d_norm.iloc[0, 2:],
+                               d_norm.iloc[row, 2:], alternative=None)
             elif method == 'kruskal':
                 corr, p_val = scipy.stats.kruskal(d_norm.iloc[0, 2:],
                                                   d_norm.iloc[row, 2:])
