@@ -73,3 +73,17 @@ class test_dm(unittest.TestCase):
         assert d_test.shape == (27, 16), 'dataframe shape error'
         assert d_test['sample'].dtype == object, 'sample column type error'
         return
+
+    def test_trend_calc(self):
+        keys = ['CEC', 'Blank', 'ISTD', 'Wash', 'Shutdown']
+        key = ['SR520-Cal']
+        d_ms = pd.read_csv(file_path)
+        d_sample = dm.data_prep(d_ms, keys, rt_range=[1, 30],
+                                mz_range=[200, 800], area_thres=500,
+                                simp_summary=False)
+        d_test = dm.trend_calc(d_sample, key, min_size=5,
+                               normalization='zscore',
+                               method='pearsonr', visual=False)
+        assert len(d_test) > 0, 'no output'
+        assert type(d_test) == pd.core.frame.DataFrame, 'wrong output'
+        return
