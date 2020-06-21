@@ -206,8 +206,7 @@ def trend_calc(d_input, select_keyword, min_size=5, normalization='linear',
     plot of the scatter with True/False."""
     col_select = []
     for key in select_keyword:
-        col_app = [col for col in d_input.columns if key in col]
-        col_select += col_app
+        col_app.extend([col for col in d_input.columns if key in col])
     d_clu = d_input[col_select]
     c_data = d_clu.values
     c_norm = []
@@ -227,7 +226,7 @@ def trend_calc(d_input, select_keyword, min_size=5, normalization='linear',
     # Post treatment to fit the d_norm into original codes
     d_norm.insert(0, "RT", d_input['Average RT (min)'].tolist())
     d_norm.insert(1, "MZ", d_input['Average m/z'].tolist())
-    d_norm = d_norm.reset_index(drop=True)
+    d_norm.reset_index(drop=True, inplace=True)
     # Original codes
     cluster = []  # individual cluster holder
     cluster_sum = []  # total clusters
