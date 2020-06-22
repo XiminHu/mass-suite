@@ -156,7 +156,7 @@ class test_dm(unittest.TestCase):
         assert type(reg) == sklearn.linear_model._base.LinearRegression, \
             'wrong regression applied'
         assert type(reg1) == list, 'wrong regression applied'
-        assert type(reg2) == sklearn.ensemble.bagging.BaggingRegressor, \
+        assert type(reg2) == sklearn.ensemble._bagging.BaggingRegressor, \
             'wrong regression applied'
         assert type(reg3) == list, 'wrong regression applied'
         return
