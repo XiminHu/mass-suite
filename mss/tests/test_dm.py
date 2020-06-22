@@ -153,7 +153,7 @@ class test_dm(unittest.TestCase):
         reg3 = dm.feature_model(d_transpose, cluster_algorithm=True,
                                 model_method='ensemble_bagging_svc',
                                 report=False)
-        assert type(reg) == (sklearn.linear_model.base.LinearRegression,
+        assert type(reg) == (sklearn.linear_model._base.LinearRegression,
                              'wrong regression applied')
         assert type(reg1) == (sklearn.ensemble._forest.RandomForestRegressor,
                               'wrong regression applied')
@@ -178,7 +178,8 @@ class test_dm(unittest.TestCase):
         dilu_col = ['SR520-Cal', 'SR520_Cal']
         d_transpose = dm.transpose(d_merge, dilu_col)
         reg = dm.feature_model(d_transpose, cluster_algorithm=True,
-                               model_method='linear_reg', report=False)
+                               model_method='ensemble_bagging_dt',
+                               report=False)
         reg1 = dm.feature_model(d_transpose, cluster_algorithm=True,
                                 model_method='ensemble_rf', report=False)
         dilu_test = dm.cluster_pred(reg, d_merge, '20181114_CoulterCreek_1',
