@@ -109,3 +109,21 @@ class test_dm(unittest.TestCase):
         assert len(d_merge) > 0, 'alignment went wrong'
         assert type(d_merge) == pd.core.frame.DataFrame, 'wrong output'
         return
+
+    def test_transpose(self):
+        keys = ['CEC', 'Blank', 'ISTD', 'Wash', 'Shutdown']
+        d_ms = pd.read_csv(file_path)
+        d_sample = dm.data_prep(d_ms, keys, rt_range=[1, 30],
+                                mz_range=[200, 800], area_thres=500,
+                                simp_summary=False)
+        d_sample2 = dm.ms_cluster(d_sample, ['SR520-Cal'], 'linear',
+                                  d_reduce=False, visual=False,
+                                  eps=0.6, min_samples=10)
+        d_ref = pd.read_csv(file_path3)
+        d_model = d_sample2[d_sample2['label'] != -1]
+        d_merge = dm.batch_alignment(d_model, d_ref)
+        dilu_col = ['SR520-Cal', 'SR520_Cal']
+        d_transpose = dm.transpose(d_merge, dilu_col)
+        assert len(d_transpose) > 0, 'transpose went wrong'
+        assert type(d_transpose) == pd.core.frame.Dataframe, 'wrong output'
+        return
