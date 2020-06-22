@@ -105,7 +105,7 @@ def frag_massbank(mzml_scans, precursor, error=20, noise_thr=50, scan_index=0):
 
 
 def frag_comp(mzml_scans, precursor, error=20, scan_index=0, mona_index=0,
-              noise_thr=50, interactive=False, search=False, source='MoDNA'):
+              noise_thr=50, interactive=False, search=False, source='MoNA'):
     '''
     Interactive spectrum plot with nearest retention time from the given scan
     mzml_scans: mzfile
@@ -131,7 +131,7 @@ def frag_comp(mzml_scans, precursor, error=20, scan_index=0, mona_index=0,
         mz = plot_scan.mz
         ints = plot_scan.i
         rt = plot_scan.scan_time[0]
-        print('Precursor:', round(plot_scan.Cselected_precursors[0]['mz'], 4),
+        print('Precursor:', round(plot_scan.selected_precursors[0]['mz'], 4),
               'precursor intensity:',
               round(plot_scan.selected_precursors[0]['i'], 1))
         print('Scan time:', round(plot_scan.scan_time[0], 2), 'minute')
