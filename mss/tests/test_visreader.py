@@ -1,14 +1,4 @@
 import unittest
-import os
-import matplotlib.pyplot as plt
-import numpy as np
-import plotly.graph_objects as go
-import re
-from scipy.integrate import simps
-import peakutils
-import webbrowser
-import pyperclip
-import mss
 from mss import visreader
 
 
