@@ -125,5 +125,5 @@ class test_dm(unittest.TestCase):
         dilu_col = ['SR520-Cal', 'SR520_Cal']
         d_transpose = dm.transpose(d_merge, dilu_col)
         assert len(d_transpose) > 0, 'transpose went wrong'
-        assert type(d_transpose) == pd.core.frame.Dataframe, 'wrong output'
+        assert type(d_transpose) == pd.core.frame.DataFrame, 'wrong output'
         return
