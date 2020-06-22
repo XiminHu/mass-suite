@@ -107,7 +107,17 @@ Supported export formats: .csv/.xlsx
 
 ![alignment](./doc/pic/alignment.png)
 
-There is also a script version of the functions that integrated the functions into a automated workflow, please see ```script/```
+There is also a script version of the functions that integrated the functions into a automated workflow, please see ```script/mss_processor.py```
+
+The automated workflow is excutable via command line:
+
+```python -m mss_processor.py```
+
+example:
+
+![processor](./doc/pic/processor.png)
+
+Currently the script only support *.csv* export.
 
 ### MS data analysis
 

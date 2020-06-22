@@ -1,9 +1,9 @@
 import sys
-sys.path.append('../mss')
-import mssmain as mss
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
+sys.path.append('../mss')
+import mssmain as mss
 
 path = input('Please input the mzml file path:')
 noise_thres = int(input('Please input the noise threshold for ms1 spectrum:'))
@@ -13,7 +13,7 @@ if score_switch == 'Y':
 elif score_switch == 'N':
     model_score = False
 else:
-    print ('invalid selection')
+    print('invalid selection')
     model_score = False
 
 rt_error = float(input('please define the rt error:'))
@@ -28,9 +28,10 @@ batch_scan, file_list = mss.batch_scans(path, True, noise_thres)
 print('Processing peak list...')
 d_peak = []
 for i in range(len(batch_scan)):
-	print('Processing', str(int(i+1)), 'out of ', len(batch_scan), 'file')
-	d_result = mss.peak_list(batch_scan[i], 20,enable_score=model_score)
-	d_peak.append(d_result)
+    print('Processing', str(int(i + 1)), 'out of ', len(batch_scan), 'file')
+    d_result = mss.peak_list(batch_scan[i], 20, enable_score=model_score)
+    d_peak.append(d_result)
+
 
 def stack(d_batch):
     """This function compiles all samples files into one dataframe
@@ -41,8 +42,8 @@ def stack(d_batch):
     for i in range(num_files):
         sample = d_batch[i]
         sample_df = pd.DataFrame(sample, columns=['rt',
-                                'm/z', 'sn', 'score', 'peak area'],
-                                dtype=np.float32)
+                                 'm/z', 'sn', 'score', 'peak area'],
+                                 dtype=np.float32)
         all_samples += [sample_df]
     # Combining all the dataframes into one
     total_samples = pd.concat(all_samples)
@@ -63,8 +64,8 @@ def alignment(d_batch, export_name, rt_error, MZ_error):
     mz_error = MZ_error
     # reads .txt file into a dataframe
     standard_df = pd.DataFrame(d_batch[0], columns=['rt',
-                              'm/z', 'sn', 'score', 'peak area'],
-                              dtype=np.float32)
+                               'm/z', 'sn', 'score', 'peak area'],
+                               dtype=np.float32)
     # Creating the reference df based off 1st sample
     alignment_df['m/z'] = standard_df.iloc[:, 0]
     alignment_df['rt'] = standard_df.iloc[:, 1]
@@ -75,9 +76,9 @@ def alignment(d_batch, export_name, rt_error, MZ_error):
     alignment_df['Sum sn'] = 0.0
     alignment_df['Sum score'] = 0.0
     alignment_df['Sum RT (min)'] = alignment_df[
-                                   'Sum RT (min)'].astype('float32')
+        'Sum RT (min)'].astype('float32')
     alignment_df['Sum Precursor m/z'] = alignment_df[
-                                        'Sum Precursor m/z'].astype('float32')
+        'Sum Precursor m/z'].astype('float32')
     alignment_df['Sum sn'] = alignment_df['Sum sn'].astype('float32')
     alignment_df['Sum score'] = alignment_df['Sum score'].astype('float32')
     alignment_df.loc[alignment_df.sn == 0, 'sn'] = float('inf')
@@ -104,9 +105,9 @@ def alignment(d_batch, export_name, rt_error, MZ_error):
             if total_samp.index[row] < total_samp.index[row + 1]:
                 # checks to see if row exists in reference or not
                 overlap = np.where(((alignment_df.iloc[:, 1] - RT_error)
-                                   <= total_samp.iloc[row, 1]) &
+                                    <= total_samp.iloc[row, 1]) &
                                    (total_samp.iloc[row, 1] <=
-                                   (alignment_df.iloc[:, 1] + RT_error))
+                                    (alignment_df.iloc[:, 1] + RT_error))
                                    & ((alignment_df.iloc[:, 0] - mz_error)
                                       <= total_samp.iloc[row, 0])
                                    & (total_samp.iloc[row, 0] <=
@@ -119,12 +120,12 @@ def alignment(d_batch, export_name, rt_error, MZ_error):
                                         col_index]] += total_samp.iloc[row, 4]
                         # Averages the mean if there is a repeat intensity
                         alignment_df.at[overlap, alignment_df.columns[
-                                         col_index]] /= 2
+                            col_index]] /= 2
                     else:
                         # sets intensity value where realignment was identified
                         alignment_df.at[overlap, alignment_df.columns[
-                                             col_index]] = total_samp.iloc[
-                                                           row, 4]
+                            col_index]] = total_samp.iloc[
+                            row, 4]
                         # adds rt, sn, m/z, score to aligned point
                         alignment_df.at[overlap,
                                         'Sum RT (min)'] += (total_samp.
@@ -140,25 +141,25 @@ def alignment(d_batch, export_name, rt_error, MZ_error):
                     # appends as a new reference if nothing is found
                     alignment_df.loc[row_max] = total_samp.iloc[row, 0:4]
                     alignment_df.at[alignment_df.index[
-                                   -1], alignment_df.columns[
-                                        col_index]] = total_samp.iloc[row, 4]
+                        -1], alignment_df.columns[
+                        col_index]] = total_samp.iloc[row, 4]
                     alignment_df.at[alignment_df.index[
-                                   -1], 'Sum RT (min)'] = total_samp.iloc[
-                                                          row, 1]
+                        -1], 'Sum RT (min)'] = total_samp.iloc[
+                        row, 1]
                     alignment_df.at[alignment_df.index[
-                                   -1], 'Sum Precursor m/z'] = total_samp.iloc[
-                                                               row, 0]
+                        -1], 'Sum Precursor m/z'] = total_samp.iloc[
+                        row, 0]
                     alignment_df.at[alignment_df.index[
-                                   -1], 'Sum sn'] = total_samp.iloc[row, 2]
+                        -1], 'Sum sn'] = total_samp.iloc[row, 2]
                     alignment_df.at[alignment_df.index[
-                                   -1], 'Sum score'] = total_samp.iloc[row, 3]
+                        -1], 'Sum score'] = total_samp.iloc[row, 3]
             else:
                 # if index changes, moves to next sample column
                 col_index += 1
                 overlap = np.where(((alignment_df.iloc[:, 1] - RT_error)
-                                   <= total_samp.iloc[row, 1]) &
+                                    <= total_samp.iloc[row, 1]) &
                                    (total_samp.iloc[row, 1] <=
-                                   (alignment_df.iloc[:, 1] + RT_error))
+                                    (alignment_df.iloc[:, 1] + RT_error))
                                    & ((alignment_df.iloc[:, 0] - mz_error)
                                       <= total_samp.iloc[row, 0])
                                    & (total_samp.iloc[row, 0] <=
@@ -167,14 +168,14 @@ def alignment(d_batch, export_name, rt_error, MZ_error):
                     overlap = [overlap][0][0][0]
                     if (alignment_df.iloc[overlap, col_index]) > 0:
                         alignment_df.at[overlap, alignment_df.columns[
-                                         col_index]] += total_samp.iloc[row, 4]
+                            col_index]] += total_samp.iloc[row, 4]
                         # Averages the mean if there is a repeat intensity
                         alignment_df.at[overlap, alignment_df.columns[
-                                         col_index]] /= 2
+                            col_index]] /= 2
                     else:
                         alignment_df.at[overlap, alignment_df.columns[
-                                             col_index]] = total_samp.iloc[
-                                                           row, 4]
+                            col_index]] = total_samp.iloc[
+                            row, 4]
                         # adds rt, m/z, score, sn to aligned point
                         alignment_df.at[overlap,
                                         'Sum RT (min)'] += (total_samp.
@@ -190,21 +191,21 @@ def alignment(d_batch, export_name, rt_error, MZ_error):
                     # appends as a new reference if nothing is found
                     alignment_df.loc[row_max] = total_samp.iloc[row, 0:4]
                     alignment_df.at[alignment_df.index[
-                                   -1], alignment_df.columns[
-                                        col_index]] = total_samp.iloc[row, 4]
+                        -1], alignment_df.columns[
+                        col_index]] = total_samp.iloc[row, 4]
                     alignment_df.at[alignment_df.index[
-                                   -1], 'Sum RT (min)'] = total_samp.iloc[
-                                                          row, 1]
+                        -1], 'Sum RT (min)'] = total_samp.iloc[
+                        row, 1]
                     alignment_df.at[alignment_df.index[
-                                   -1], 'Sum Precursor m/z'] = total_samp.iloc[
-                                                               row, 0]
+                        -1], 'Sum Precursor m/z'] = total_samp.iloc[
+                        row, 0]
                     alignment_df.at[alignment_df.index[
-                                   -1], 'Sum sn'] = total_samp.iloc[row, 2]
+                        -1], 'Sum sn'] = total_samp.iloc[row, 2]
                     alignment_df.at[alignment_df.index[
-                                   -1], 'Sum score'] = total_samp.iloc[row, 3]
+                        -1], 'Sum score'] = total_samp.iloc[row, 3]
         else:  # for last row of dataframe
             overlap = np.where(((alignment_df.iloc[:, 1] - RT_error)
-                               <= total_samp.iloc[row, 1]) &
+                                <= total_samp.iloc[row, 1]) &
                                (total_samp.iloc[row, 1] <=
                                 (alignment_df.iloc[:, 1] + RT_error))
                                & ((alignment_df.iloc[:, 0] - mz_error)
@@ -215,14 +216,14 @@ def alignment(d_batch, export_name, rt_error, MZ_error):
                 overlap = [overlap][0][0][0]
                 if (alignment_df.iloc[overlap, col_index]) > 0:
                     alignment_df.at[overlap, alignment_df.columns[
-                                         col_index]] += total_samp.iloc[row, 4]
+                        col_index]] += total_samp.iloc[row, 4]
                     # Averages the mean if there is a repeat intensity
                     alignment_df.at[overlap, alignment_df.columns[
-                                         col_index]] /= 2
+                        col_index]] /= 2
                 else:
                     # sets intensity value where realignment was identified
                     alignment_df.at[overlap, alignment_df.columns[
-                                         col_index]] = total_samp.iloc[row, 4]
+                        col_index]] = total_samp.iloc[row, 4]
                     # adds rt, m/z, score, sn to aligned point
                     alignment_df.at[overlap, 'Sum RT (min)'] += (total_samp.
                                                                  iloc[row, 1])
@@ -230,24 +231,24 @@ def alignment(d_batch, export_name, rt_error, MZ_error):
                                     'Sum Precursor m/z'] += (total_samp.
                                                              iloc[row, 0])
                     alignment_df.at[overlap, 'Sum sn'] += total_samp.iloc[
-                                                           row, 2]
+                        row, 2]
                     alignment_df.at[overlap, 'Sum score'] += total_samp.iloc[
-                                                              row, 3]
+                        row, 3]
             else:
                 # appends as a new reference if nothing is found
                 alignment_df.loc[row_max] = total_samp.iloc[row, 0:4]
                 alignment_df.at[alignment_df.index[
-                               -1], alignment_df.columns[
-                                    col_index]] = total_samp.iloc[row, 4]
+                    -1], alignment_df.columns[
+                    col_index]] = total_samp.iloc[row, 4]
                 alignment_df.at[alignment_df.index[
-                               -1], 'Sum RT (min)'] = total_samp.iloc[row, 1]
+                    -1], 'Sum RT (min)'] = total_samp.iloc[row, 1]
                 alignment_df.at[alignment_df.index[
-                               -1], 'Sum Precursor m/z'] = total_samp.iloc[
-                                                           row, 0]
+                    -1], 'Sum Precursor m/z'] = total_samp.iloc[
+                    row, 0]
                 alignment_df.at[alignment_df.index[
-                               -1], 'Sum sn'] = total_samp.iloc[row, 2]
+                    -1], 'Sum sn'] = total_samp.iloc[row, 2]
                 alignment_df.at[alignment_df.index[
-                               -1], 'Sum score'] = total_samp.iloc[row, 3]
+                    -1], 'Sum score'] = total_samp.iloc[row, 3]
     alignment_df.rename(columns={'rt': 'Average RT (min)'}, inplace=True)
     alignment_df.rename(columns={'m/z': 'Average m/z'}, inplace=True)
     alignment_df.rename(columns={'sn': 'Average sn'}, inplace=True)
@@ -263,15 +264,11 @@ def alignment(d_batch, export_name, rt_error, MZ_error):
         # Calculating the averages after the iterations
         # requires count of nonzero count to calculate the mean properly
         count = np.count_nonzero(alignment_df.iloc[rows, 8:])
-        if count > 0:
-            alignment_df.at[rows, 'Average RT (min)'] = (alignment_df.loc[rows,
-                                                         'Sum RT (min)']/count)
-            alignment_df.at[rows, 'Average m/z'] = (alignment_df.loc[rows,
-                                                    'Sum Precursor m/z']/count)
-            alignment_df.at[rows, 'Average sn'] = (alignment_df.loc[rows,
-                                                   'Sum sn']/count)
-            alignment_df.at[rows, 'Average score'] = (alignment_df.loc[rows,
-                                                      'Sum score']/count)
+        if count > 0: #Double check in future debug
+            alignment_df.at[rows, 'Average RT (min)'] = (alignment_df.loc[rows, 'Sum RT (min)'] / count)
+            alignment_df.at[rows, 'Average m/z'] = (alignment_df.loc[rows, 'Sum Precursor m/z'] / count)
+            alignment_df.at[rows, 'Average sn'] = (alignment_df.loc[rows, 'Sum sn'] / count)
+            alignment_df.at[rows, 'Average score'] = (alignment_df.loc[rows, 'Sum score'] / count)
         else:
             invalid.append(rows)
             print("Identified invalid peak(s)")  # For detection error
@@ -284,8 +281,8 @@ def alignment(d_batch, export_name, rt_error, MZ_error):
         pass
     # Drop columns to collect sums for averaging
     alignment_df = alignment_df.drop(columns=[
-                   'Sum RT (min)', 'Sum Precursor m/z',
-                   'Sum sn', 'Sum score'])
+        'Sum RT (min)', 'Sum Precursor m/z',
+        'Sum sn', 'Sum score'])
     # rounds numbers in the first two columns
     alignment_df = alignment_df.round({'Average RT (min)': 3,
                                        'Average m/z': 5})
