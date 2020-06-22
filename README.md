@@ -56,7 +56,7 @@ The package can be installed & imported as following:
 pip install mass-suite
 ```
 ```
-from mass-suite import *
+import mss
 ```
 
 
