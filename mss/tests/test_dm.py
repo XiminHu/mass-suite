@@ -153,14 +153,12 @@ class test_dm(unittest.TestCase):
         reg3 = dm.feature_model(d_transpose, cluster_algorithm=True,
                                 model_method='ensemble_bagging_svc',
                                 report=False)
-        assert type(reg) == (sklearn.linear_model._base.LinearRegression,
-                             'wrong regression applied')
-        assert type(reg1) == (sklearn.ensemble._forest.RandomForestRegressor,
-                              'wrong regression applied')
-        assert type(reg2) == (sklearn.ensemble.bagging.BaggingRegressor,
-                              'wrong regression applied')
-        assert type(reg3) == (sklearn.ensemble.bagging.BaggingRegressor,
-                              'wrong regression applied')
+        assert type(reg) == sklearn.linear_model._base.LinearRegression, \
+            'wrong regression applied'
+        assert type(reg1) == list, 'wrong regression applied'
+        assert type(reg2) == sklearn.ensemble.bagging.BaggingRegressor, \
+            'wrong regression applied'
+        assert type(reg3) == list, 'wrong regression applied'
         return
 
     def test_cluster_pred(self):
