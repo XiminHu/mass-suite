@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from mss import dm
 import mss
+import sklearn
 import example_data
 test_path = os.path.join(mss.__path__[0], 'tests')
 data_path = os.path.join(test_path, 'data')
@@ -126,4 +127,66 @@ class test_dm(unittest.TestCase):
         d_transpose = dm.transpose(d_merge, dilu_col)
         assert len(d_transpose) > 0, 'transpose went wrong'
         assert type(d_transpose) == pd.core.frame.DataFrame, 'wrong output'
+        return
+
+    def test_feature_model(self):
+        keys = ['CEC', 'Blank', 'ISTD', 'Wash', 'Shutdown']
+        d_ms = pd.read_csv(file_path)
+        d_sample = dm.data_prep(d_ms, keys, rt_range=[1, 30],
+                                mz_range=[200, 800], area_thres=500,
+                                simp_summary=False)
+        d_sample2 = dm.ms_cluster(d_sample, ['SR520-Cal'], 'linear',
+                                  d_reduce=False, visual=False,
+                                  eps=0.6, min_samples=10)
+        d_ref = pd.read_csv(file_path3)
+        d_model = d_sample2[d_sample2['label'] != -1]
+        d_merge = dm.batch_alignment(d_model, d_ref)
+        dilu_col = ['SR520-Cal', 'SR520_Cal']
+        d_transpose = dm.transpose(d_merge, dilu_col)
+        reg = dm.feature_model(d_transpose, cluster_algorithm=False,
+                               model_method='linear_reg', report=False)
+        reg1 = dm.feature_model(d_transpose, cluster_algorithm=True,
+                                model_method='ensemble_rf', report=False)
+        reg2 = dm.feature_model(d_transpose, cluster_algorithm=False,
+                                model_method='ensemble_bagging_dt',
+                                report=False)
+        reg3 = dm.feature_model(d_transpose, cluster_algorithm=True,
+                                model_method='ensemble_bagging_svc',
+                                report=False)
+        assert type(reg) == (sklearn.linear_model.base.LinearRegression,
+                             'wrong regression applied')
+        assert type(reg1) == (sklearn.ensemble._forest.RandomForestRegressor,
+                              'wrong regression applied')
+        assert type(reg2) == (sklearn.ensemble.bagging.BaggingRegressor,
+                              'wrong regression applied')
+        assert type(reg3) == (sklearn.ensemble.bagging.BaggingRegressor,
+                              'wrong regression applied')
+        return
+
+    def test_cluster_pred(self):
+        keys = ['CEC', 'Blank', 'ISTD', 'Wash', 'Shutdown']
+        d_ms = pd.read_csv(file_path)
+        d_sample = dm.data_prep(d_ms, keys, rt_range=[1, 30],
+                                mz_range=[200, 800], area_thres=500,
+                                simp_summary=False)
+        d_sample2 = dm.ms_cluster(d_sample, ['SR520-Cal'], 'linear',
+                                  d_reduce=False, visual=False,
+                                  eps=0.6, min_samples=10)
+        d_ref = pd.read_csv(file_path3)
+        d_model = d_sample2[d_sample2['label'] != -1]
+        d_merge = dm.batch_alignment(d_model, d_ref)
+        dilu_col = ['SR520-Cal', 'SR520_Cal']
+        d_transpose = dm.transpose(d_merge, dilu_col)
+        reg = dm.feature_model(d_transpose, cluster_algorithm=True,
+                               model_method='linear_reg', report=False)
+        reg1 = dm.feature_model(d_transpose, cluster_algorithm=True,
+                                model_method='ensemble_rf', report=False)
+        dilu_test = dm.cluster_pred(reg, d_merge, '20181114_CoulterCreek_1',
+                                    selected_cluster=[0, 1, 3, 5, 7, 9],
+                                    model_merge='weighted_size')
+        dilu_test2 = dm.cluster_pred(reg1, d_merge, '20181114_CoulterCreek_1',
+                                     selected_cluster=[0, 1, 3, 5, 7, 9],
+                                     model_merge='average')
+        assert dilu_test >= 0, 'Invalid dilution prediction'
+        assert dilu_test2 >= 0, 'Invalid dilution prediction'
         return
