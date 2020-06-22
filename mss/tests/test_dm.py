@@ -4,11 +4,15 @@ import pandas as pd
 import numpy as np
 from mss import dm
 import mss
+import example_data
 test_path = os.path.join(mss.__path__[0], 'tests')
 data_path = os.path.join(test_path, 'data')
 file = 'sample1114.csv'
 file_path = os.path.join(data_path, file)
-
+test_path2 = os.path.join(example_data.__path__[0], 'clustering')
+file_path2 = os.path.join(test_path2, file)
+file2 = 'sample0815.csv'
+file_path3 = os.path.join(test_path2, file2)
 # Test update: how to write this type of test in chain
 # output from one function is input for next function
 
@@ -86,14 +90,22 @@ class test_dm(unittest.TestCase):
                                method='pearsonr', visual=False)
         d_test1 = dm.trend_calc(d_sample, key, min_size=5,
                                 normalization='log',
-                                method='mannwhitneyu', visual=False)
+                                method='pearsonr', visual=False)
         d_test2 = dm.trend_calc(d_sample, key, min_size=5,
                                 normalization='linear',
-                                method='kruskal', visual=False)
+                                method='pearsonr', visual=False)
         assert len(d_test) > 0, 'no output'
         assert type(d_test) == pd.core.frame.DataFrame, 'wrong output'
         assert len(d_test1) > 0, 'no output'
         assert type(d_test1) == pd.core.frame.DataFrame, 'wrong output'
         assert len(d_test2) > 0, 'no output'
         assert type(d_test2) == pd.core.frame.DataFrame, 'wrong output'
+        return
+
+    def test_batch_alignment(self):
+        d_model = pd.read_csv(file_path2)
+        d_test = pd.read_csv(file_path3)
+        d_merge = dm.batch_alignment(d_model, d_test)
+        assert len(d_merge) > 0, 'alignment went wrong'
+        assert type(d_merge) == pd.core.frame.DataFrame, 'wrong output'
         return
