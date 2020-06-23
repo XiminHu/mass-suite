@@ -200,5 +200,5 @@ The package is open source and can be utilized under MIT license. Please find th
 Mass-suite welcomes help from wide range of different backgrounds. As the package will keep developing, suggestions and improvements are always appreciated. If you are interested in testing the package using your own MS data, giving suggestions for adding modules or improving existing ones, have some question or seeking for cooperation, please contact the main contributor(xhu66@uw.edu).
 
 ### Special Thanks
-  * A big shout to Professor Dave Beck, Professor Edward Kolodziej, Katherine Peter, and the Center of Urban Water for all of their help during the development of this package.
+  * A big shout to Professor Edward Kolodziej, Professor Dave Beck, Katherine Peter, and the Center of Urban Water for all of their help during the development of this package.
 
