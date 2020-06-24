@@ -1,10 +1,5 @@
 import unittest
 from mss import visreader
-import os
-import mss
-from mss import mssmain
-data_path = os.path.dirname(os.path.join(mss.__path__[0]))
-batchpath = data_path + '/example_data/ex_1.mzML'
 
 
 class test_dm(unittest.TestCase):
@@ -19,24 +14,4 @@ class test_dm(unittest.TestCase):
         test_formula = 'C18H22N2O2'
         result = visreader.formula_mass(test_formula)
         assert result == 299.1764085799, 'Wrong output'
-        return
-
-    def test_tic_plot(self):
-        scans = mssmain.get_scans(batchpath, ms_all=False, ms_lv=1)
-        test_plt = visreader.tic_plot(scans, interactive=False)
-        assert isinstance(test_plt, type(None)), 'invalid plot'
-        return
-
-    def test_ms_plot(self):
-        scans = mssmain.get_scans(batchpath, ms_all=False, ms_lv=1)
-        test_plt = visreader.ms_plot(scans, 8.47, True)
-        assert isinstance(test_plt, type(None)), 'invalid result'
-        return
-
-    def test_ms_chromatogram(self):
-        scans = mssmain.get_scans(batchpath, ms_all=False, ms_lv=1)
-        test_plt = visreader.ms_chromatogram(scans, 'C18H22N2O2',
-                                             20, False, 'pos',
-                                             False, False, 'pubchem')
-        assert isinstance(test_plt, type(None)), 'invalid result'
         return
