@@ -40,9 +40,3 @@ class test_dm(unittest.TestCase):
                                              False, False, 'pubchem')
         assert isinstance(test_plt, type(None)), 'invalid result'
         return
-
-    def test_integration_plot(self):
-        scans = mssmain.get_scans(batchpath, ms_all=False, ms_lv=1)
-        test_plt = visreader.integration_plot(scans, 175, 5000)
-        assert isinstance(test_plt, type(None)), 'invalid result'
-        return
