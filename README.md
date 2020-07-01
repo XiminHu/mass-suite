@@ -23,7 +23,7 @@ It provided a full capacity including data import, alignment, noise removal, vis
 The mass-suite package is also providing a data mining option for the feature clustering using dilution datasets, aiming at dilution prediction, source tracking and matrix effect assessment.
 
 #### Contributers: Ximin Hu, Derek Mar, Nozomi Suzuki, Bowei Zhang
-#### Release date: 
+#### Release date: 2020/06/24
 
 ## Installation & major dependencies
 #### Activating the virtual environment

@@ -15,6 +15,18 @@ from sklearn.model_selection import train_test_split
 from sklearn import linear_model
 
 
+def mss_convert(d_input, rtmz_key, pa_index):
+    d_rtmz = d_input[rtmz_key].copy()
+    d_pa = d_input.iloc[:, pa_index:].copy()
+    d_pa.fillna(0, inplace=True)
+    d_merge = pd.concat([d_rtmz, d_pa], axis=1)
+    d_merge = d_merge.rename(columns={rtmz_key[0]: 'Average RT (min)',
+                             rtmz_key[1]: 'Average m/z'})
+    d_merge.insert(2, "Average sn", 100)
+    d_merge.insert(3, "Average score", 1)
+    return d_merge
+
+
 def data_prep(d_input, blank_keyword, simp_summary=False, svb_thres=10,
               empty_thres=0, rt_range=[0, 30], mz_range=[0, 1200],
               sn_thres=3, score_thres=0, area_thres=5000):
