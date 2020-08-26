@@ -31,16 +31,10 @@ def get_scans(path, ms_all=False, ms_lv=1):
     # Read path using pymzml
     run = pymzml.run.Reader(path)
 
-    scans = []
-    if ms_all is False:
-        for scan in run:
-            if scan.ms_level == ms_lv:
-                scans.append(scan)
-    elif ms_all is True:
-        for scan in run:
-            scans.append(scan)
-
-    return scans
+    if ms_all:
+        return [scan for scan in run]
+    else:
+        return [scan for scan in run if scan.ms_level == ms_lv]
 
 
 # Noise removal
@@ -78,14 +72,11 @@ def mz_locator(input_list, mz, error, select_app=True):
     higher_mz = mz + error * mz
 
     for i, mzs in enumerate(input_list):
-        if mzs < lower_mz:
-            continue
-        elif mzs >= lower_mz:
-            if mzs <= higher_mz:
-                target_mz.append(mzs)
-                target_index.append(i)
+        if (lower_mz <= mzs <= higher_mz):
+            target_mz.append(mzs)
+            target_index.append(i)
 
-    if select_app is False:
+    if not select_app:
         if len(target_mz) != 0:
             target_error = [abs(i - mz) for i in target_mz]
             minpos = target_error.index(min(target_error))
@@ -94,7 +85,7 @@ def mz_locator(input_list, mz, error, select_app=True):
         else:
             t_mz = 0
             t_i = 'NA'
-    if select_app is True:
+    else:
         t_mz = target_mz
         t_i = target_index
 
@@ -211,6 +202,7 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
                            intensity[h_range + 1: h_range +
                            sn_range + 1])
         noise = max(neighbour_blank)
+        # Ning: just curious why we use 0 as threshold? shall we use a small positive number to filter out noise?
         if noise != 0:
             sn = round(signal / noise, 3)
         elif noise == 0:
@@ -254,7 +246,7 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
                 # Awaiting to be added:
                 # model prediction as the assessment score column
                 # score = model.fit(X_para from all above)
-                if enable_score is True:
+                if enable_score:
                     w = rt[h_range] - rt[l_range]
                     t_r = (h_half - l_half) * rt_conversion_rate
                     l_width = rt[index] - rt[l_range]
@@ -269,7 +261,7 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
                     # score = np.argmax(Pmodel.predict(x_input.reshape(1,-1)))
                     # for tensorflow
                     score = int(Pmodel.predict(x_input.reshape(1, -1)))
-                elif enable_score is False:
+                elif not enable_score:
                     score = 1
                 # final result append score
 
@@ -314,9 +306,7 @@ def peak_list(mzml_scans, err_ppm=20, enable_score=True, mz_c_thres=5,
 
     # Function to filter out empty mz slots to speed up the process
     def mz_gen(mzml_scans, err_ppm, mz_c_thres):
-        pmz = []
-        for scan in mzml_scans:
-            pmz.append(scan.mz)
+        pmz = [scan.mz for scan in mzml_scans]
         pmz = np.hstack(pmz).squeeze()
 
         # Function to generate a reference mz list using a defined step
