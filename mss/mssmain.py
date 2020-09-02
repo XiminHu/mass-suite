@@ -12,6 +12,7 @@ from pathlib import Path
 import scipy
 import pickle
 import os
+import re
 # from mss import mssdata
 # Modeling modules
 # from tensorflow import keras
@@ -423,3 +424,36 @@ def batch_peak(batch_input, source_list, mz, error):
     d_result = pd.DataFrame(result_dict)
 
     return d_result
+
+
+# Read in formula database
+Formula_file = os.path.join(this_dir, '100-500.csv')
+cfg = pd.read_csv(Formula_file, index_col=0)
+
+
+def formula_calc(mz, composition, error=5, mode='pos'):
+    '''
+    Now only support 100-500 mz
+    '''
+    e_weight = 0.0005485799
+    if mode == 'pos':
+        mz = mz + e_weight
+    elif mode == 'neg':
+        mz = mz - e_weight
+
+    low_mz = mz - mz * error * 1e-6
+    high_mz = mz + mz * error * 1e-6
+
+    hit = cfg[(cfg['Mass'] >= low_mz) & (cfg['Mass'] <= high_mz)].copy()
+    hit['error in Da'] = mz - hit['Mass']
+    hit['error in ppm'] = hit['error in Da'] / mz * 1e6
+
+    hit = hit.iloc[hit['error in ppm'].abs().argsort()]
+
+    for i in hit.index:
+        f_reg = re.findall(r'([A-Z][a-z]*)', i)
+        ip_reg = re.findall(r'([A-Z][a-z]*)', composition)
+        if len([i for i in f_reg if i not in ip_reg]) > 0:
+            hit.drop(i, inplace=True)
+
+    return hit

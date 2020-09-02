@@ -6,6 +6,7 @@ from scipy.integrate import simps
 import peakutils
 import webbrowser
 import pyperclip
+import pyisopach
 
 
 # TIC plot
@@ -93,11 +94,11 @@ def ms_plot(mzml_scans, time, interactive=False, search=False, source='MoNA'):
     if search is True:
         for i in range(len(mz)):
             if i == 0:
-                list_string = str(round(mz[i], 4)) + ' '
-                + str(round(ints[i], 1)) + '\r'
+                list_string = str(round(mz[i], 4)) + ' ' +\
+                    str(round(ints[i], 1)) + '\r'
             else:
-                list_string += str(round(mz[i], 4)) + ' '
-                + str(round(ints[i], 1)) + '\r'
+                list_string += str(round(mz[i], 4)) + ' ' +\
+                    str(round(ints[i], 1)) + '\r'
         pyperclip.copy(list_string)
         if source == 'MoNA':
             webbrowser.open("https://mona.fiehnlab.ucdavis.edu/spectra/search")
@@ -173,11 +174,11 @@ def frag_plot(mzml_scans, precursor, error=20, scan_index=0,
         if search is True:
             for i in range(len(mz)):
                 if i == 0:
-                    list_string = str(round(mz[i], 4)) + ' '
-                    + str(round(ints[i], 1)) + '\r'
+                    list_string = str(round(mz[i], 4)), ' ' +\
+                        str(round(ints[i], 1)) + '\r'
                 else:
-                    list_string += str(round(mz[i], 4)) + ' '
-                    + str(round(ints[i], 1)) + '\r'
+                    list_string += str(round(mz[i], 4)) + ' ' +\
+                        str(round(ints[i], 1)) + '\r'
             pyperclip.copy(list_string)
             if source == 'MoNA':
                 (webbrowser.open
@@ -493,5 +494,70 @@ def integration_plot(mzml_scans, input_mz, error,
                .format(rt[index], result_dict[index][2])))
         plt.fill_between(rt[result_dict[index][0]: result_dict[index][1]],
                          ints[result_dict[index][0]: result_dict[index][1]])
+
+    return
+
+
+def iso_plot(mzml_scan, input_mz, error, formula):
+    '''
+    Interactive spectrum plot with nearest retention time from the given scan
+    mzml_scans: mzfile
+    time: selected time for the scan
+    '''
+    def ms_chromatogram_list(mzml_scans, input_mz, error):
+        '''
+        Generate a peak list for specific input_mz over
+        whole rt period from the mzml file
+        ***Most useful function!
+        '''
+
+        # Create empty list to store the data
+        retention_time = []
+        intensity = []
+        for scan in mzml_scans:
+            retention_time.append(scan.scan_time[0])
+
+            target_mz, target_index = mz_locator(scan.mz, input_mz, error)
+            if len(target_index) == 0:
+                intensity.append(0)
+            else:
+                intensity.append(sum(scan.i[target_index]))
+
+        return retention_time, intensity
+
+    def closest(lst, K):
+        idx = np.abs(np.asarray(lst) - K).argmin()
+        return idx
+
+    slt_mz = ms_chromatogram_list(mzml_scan, input_mz, error)[1]
+    scan = mzml_scan[np.argmax(slt_mz)]
+
+    mz = scan.mz
+    ints = scan.i
+
+    precursor_idx = closest(mz, input_mz)
+    precursor_mz = mz[precursor_idx]
+    precursor_ints = ints[precursor_idx]
+
+    rel_abundance = [i / precursor_ints * 100 for i in ints]
+
+    # Predicted isotope pattern
+    mol = pyisopach.Molecule(formula)
+    isotope_i = [-i for i in mol.isotopic_distribution()[1]]
+    iso_mz = mol.isotopic_distribution()[0]
+
+    wd = 0.05
+    fig, ax = plt.subplots(figsize=(12, 9))
+    ax.bar(mz, rel_abundance, width=wd, label='scan spectrum')
+    ax.bar(iso_mz, isotope_i, width=wd, label='predicted isotope pattern')
+    ax.axhline(y=0, color='k')
+    plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+    ticks = ax.get_yticks()
+    ax.set_yticklabels([int(abs(tick)) for tick in ticks])
+    plt.xlabel('m/z')
+    plt.ylabel('Relative Intensity %')
+    plt.title('Isotope pattern comparison')
+    plt.legend()
+    plt.xlim(precursor_mz - 5, precursor_mz + 10)
 
     return
