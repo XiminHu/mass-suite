@@ -13,6 +13,8 @@ import scipy
 import pickle
 import os
 import re
+import pyisopach
+from scipy import special
 # from mss import mssdata
 # Modeling modules
 # from tensorflow import keras
@@ -457,3 +459,118 @@ def formula_calc(mz, composition, error=5, mode='pos'):
             hit.drop(i, inplace=True)
 
     return hit
+
+
+def formula_prediction(mzml_scan, input_mz, error, composition='CHON',
+                       f_error=5, mode='pos', relintensity_thres=1):
+    '''
+    Interactive spectrum plot with nearest retention time from the given scan
+    mzml_scans: mzfile
+    time: selected time for the scan
+    '''
+    def ms_chromatogram_list(mzml_scans, input_mz, error):
+        '''
+        Generate a peak list for specific input_mz over
+        whole rt period from the mzml file
+        ***Most useful function!
+        '''
+
+        # Create empty list to store the data
+        retention_time = []
+        intensity = []
+        for scan in mzml_scans:
+            # print(i)
+            retention_time.append(scan.scan_time[0])
+
+            target_mz, target_index = mz_locator(scan.mz, input_mz, error)
+            if len(target_index) == 0:
+                intensity.append(0)
+            else:
+                # intensity.append(scan.i[target_index])
+                # if select_app=True
+                intensity.append(sum(scan.i[target_index]))
+
+        return retention_time, intensity
+
+    def closest(lst, K):
+        idx = np.abs(np.asarray(lst) - K).argmin()
+        return idx
+
+    mz_fit = ms_chromatogram_list(mzml_scan, input_mz, error)[1]
+    scan = mzml_scan[np.argmax(mz_fit)]
+
+    mz = scan.mz
+    ints = scan.i
+
+    precursor_idx = closest(mz, input_mz)
+    precursor_mz = mz[precursor_idx]
+    precursor_ints = ints[precursor_idx]
+
+    rel_abundance = [i / precursor_ints * 100 for i in ints]
+
+    prediction_table = formula_calc(
+                        precursor_mz, composition,
+                        error=f_error, mode='pos')
+
+    # Find closest pair
+    measured_spec = list(zip(mz, rel_abundance))
+
+    def alpha(f):
+        if f >= 80:
+            alpha = 1
+        elif 20 <= f < 80:
+            alpha = -0.0033 * f + 1.2667
+        elif 10 <= f < 20:
+            alpha = -0.08 * f + 2.8
+        elif 5 <= f < 10:
+            alpha = -0.1 * f + 3
+        elif 1 <= f < 5:
+            alpha = -1.875 * f + 11.875
+        return alpha
+
+    def beta(f):
+        if f >= 80:
+            beta = 0.06
+        elif 1 <= f < 80:
+            beta = 2.0437 * (f ** 0.765)
+        return beta
+
+    for formula in prediction_table.index:
+        mol = pyisopach.Molecule(formula)
+        istp_mass = mol.isotopic_distribution()[0]
+        istp_ints = mol.isotopic_distribution()[1]
+        idx = np.argwhere(istp_ints >= relintensity_thres).reshape(1, -1)[0]
+        # Ref SIRUIS 2013 paper
+        m_list = istp_mass[idx]
+        f_list = istp_ints[idx]
+
+        theo_spec = list(zip(m_list, f_list))
+
+        def dist(x, y):
+            return (x[0]-y[0])**2 + (x[1]-y[1])**2
+
+        score = []
+        for p in theo_spec:
+
+            measured_peak = [i for i in measured_spec if
+                             i[0] >= p[0]*(1-1e-6*7)
+                             and i[0] <= p[0]*(1+1e-6*7)]
+            if len(measured_peak) != 0:
+                hit_peak = min(measured_peak, key=lambda peak: dist(peak, p))
+                # Function from SIRIUS, may need later validation
+                f = hit_peak[1]
+                sigma_m = np.sqrt(2) * hit_peak[0] * 1/3 * 1e-6 * 7 * alpha(f)
+                x = abs(hit_peak[0] - p[0]) / sigma_m
+                P_Mm = special.erfc(x)
+                sigma_f = 1/3 * hit_peak[1] * np.log10(1 + beta(f))
+                y = np.log10(hit_peak[1] / p[1]) / (np.sqrt(2) * sigma_f)
+                P_fp = special.erfc(y)
+                score.append(0.5 * (P_Mm + P_fp))
+            else:
+                hit_peak = []
+                score.append(0)
+        prediction_table.loc[formula, 'score'] = np.mean(score) * 100
+
+    prediction_table.sort_values(by=['score'], inplace=True, ascending=False)
+
+    return prediction_table
