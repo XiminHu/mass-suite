@@ -25,6 +25,10 @@ The mass-suite package is also providing a data mining option for the feature cl
 #### Contributers: Ximin Hu, Derek Mar, Nozomi Suzuki, Bowei Zhang
 #### Release date: 2020/06/24
 
+## Update
+- 2020/09/01: Feature extraction pipeline validated comparing with msdial pipeline output
+- 2020/09/07: Updated formula prediction and isotopic score function, currently support formula prediction for small molecules under 500 Da
+
 ## Installation & major dependencies
 #### Activating the virtual environment
 * Included within the root of the repository is a virtual environment
