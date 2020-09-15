@@ -52,6 +52,21 @@ class test_mssmain(unittest.TestCase):
         assert d_test.score.dtype == 'int64', "wrong score type"
         return
 
+    def test_formula_calc(self):  # More to add during later development
+        test_mz = 299.1765
+        test_composition = 'CHON'
+        d_test = mssmain.formula_calc(test_mz, test_composition)
+        assert d_test.shape[0] == 2, "Wrong shape"
+        assert d_test.index.dtype == 'string', "Wrong dtype"
+        return
+
+    def test_formula_prediction(self):
+        test_scan = mssmain.get_scans(file_path)
+        d_test = mssmain.formula_prediction(test_scan, 299.1765, 5, f_error=10)
+        assert d_test.shape[1] == 4, "Wrong dataframe shape"
+        return
+
+
 #    def test_batch_scans(self):
 #       return
 
