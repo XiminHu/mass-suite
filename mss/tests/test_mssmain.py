@@ -57,7 +57,7 @@ class test_mssmain(unittest.TestCase):
         test_composition = 'CHON'
         d_test = mssmain.formula_calc(test_mz, test_composition)
         assert d_test.shape[0] == 2, "Wrong shape"
-        assert d_test.index.dtype == 'string', "Wrong dtype"
+        assert d_test.index.dtype == 'object', "Wrong dtype"
         return
 
     def test_formula_prediction(self):

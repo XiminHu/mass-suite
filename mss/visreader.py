@@ -7,6 +7,9 @@ import peakutils
 import webbrowser
 import pyperclip
 import pyisopach
+import plotly.offline as py
+from ipywidgets import interactive, HBox, VBox
+import pandas as pd
 
 
 # TIC plot
@@ -89,7 +92,7 @@ def ms_plot(mzml_scans, time, interactive=False, search=False, source='MoNA'):
         plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
         plt.xlabel('m/z')
         plt.ylabel('Intensity')
-        plt.title('MS1 spectrum')
+        plt.title('MS spectrum')
 
     if search is True:
         for i in range(len(mz)):
@@ -547,7 +550,7 @@ def iso_plot(mzml_scan, input_mz, error, formula):
     iso_mz = mol.isotopic_distribution()[0]
 
     wd = 0.05
-    fig, ax = plt.subplots(figsize=(12, 9))
+    _, ax = plt.subplots(figsize=(12, 9))
     ax.bar(mz, rel_abundance, width=wd, label='scan spectrum')
     ax.bar(iso_mz, isotope_i, width=wd, label='predicted isotope pattern')
     ax.axhline(y=0, color='k')
@@ -561,3 +564,65 @@ def iso_plot(mzml_scan, input_mz, error, formula):
     plt.xlim(precursor_mz - 5, precursor_mz + 10)
 
     return
+
+
+def manual_integration(mzml_scans, input_mz, error, start, end):
+    '''
+    Area integration for selected mz and time
+    '''
+    rt_lst = []
+    intensity = []
+    for scan in mzml_scans:
+        # print(i)
+        rt_lst.append(scan.scan_time[0])
+
+        _, target_index = mz_locator(scan.mz, input_mz, error)
+        if target_index == 'NA':
+            intensity.append(0)
+        else:
+            intensity.append(sum(scan.i[target_index]))
+
+    def closest(lst, K):
+        return lst[min(range(len(lst)), key=lambda i: abs(lst[i]-K))]
+
+    s_index = rt_lst.index(closest(rt_lst, start))
+    e_index = rt_lst.index(closest(rt_lst, end))
+
+    integrated = simps(y=intensity[s_index:e_index], even='avg')
+
+    return integrated
+
+
+def overview_scatter(data):
+    # Currently only use on MSS dataset
+    # Original reference:
+    # https://plotly.com/python/v3/selection-events/
+    py.init_notebook_mode()
+
+    df = data
+    df['max area'] = df.iloc[:, 3:].max(1)
+
+    f = go.FigureWidget([go.Scatter(x=df['Average Rt(min)'],
+                                    y=df['Average Mz'],
+                                    mode='markers')])
+    f.layout.xaxis.title = 'Retention Time (min)'
+    f.layout.yaxis.title = 'm/z Ratio'
+    scatter = f.data[0]
+    scatter.marker.opacity = 0.5
+
+    data_col = ['Average Rt(min)', 'Average Mz', 'S/N average', 'max area']
+    t = go.FigureWidget([go.Table(
+        header=dict(values=data_col,
+                    fill=dict(color='#C2D4FF'),
+                    align=['left'] * 5),
+        cells=dict(values=[df[col] for col in data_col],
+                   fill=dict(color='#F5F8FF'),
+                   align=['left'] * 5))])
+
+    def selection_fn(trace, points, selector):
+        t.data[0].cells.values =\
+            [df.loc[points.point_inds][col] for col in data_col]
+
+    scatter.on_selection(selection_fn)
+
+    return VBox((HBox(), f, t))
