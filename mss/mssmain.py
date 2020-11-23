@@ -113,8 +113,8 @@ Pmodel = rf_model_t
 
 def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
               thr=0.02, min_d=1, rt_window=1.5, peak_area_thres=1e5,
-              min_scan=15, max_scan=200, max_peak=5,
-              min_scan_window=20, sn_range=7):
+              min_scan=7, max_scan=200, max_peak=5,
+              min_scan_window=10, sn_range=7):
     '''
     firstly get rt, intensity from given mz and error out of the mzml file
     Then find peak on the intensity array, represent as index --> index
@@ -304,7 +304,8 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
 # Code review
 def peak_list(mzml_scans, err_ppm=20, enable_score=True, mz_c_thres=5,
               peak_base=0.005, thr=0.02, min_d=1, rt_window=1.5,
-              peak_area_thres=1e5, min_scan=7, scan_thres=7):
+              peak_area_thres=1e5, min_scan=7, max_scan=50, 
+              max_peak=5, scan_thres=7):
     '''
     Generate a dataframe by looping throughout the
     whole mz space from a given mzml file
@@ -354,9 +355,12 @@ def peak_list(mzml_scans, err_ppm=20, enable_score=True, mz_c_thres=5,
 
     for mz in tqdm(mzlist):
         try:
-            peak_dict = peak_pick(mzml_scans, mz, err_ppm, enable_score)
+            peak_dict = peak_pick(mzml_scans, mz, err_ppm, enable_score,\
+            peak_thres=peak_base, thr=thr, min_d=min_d, rt_window=rt_window,\
+            peak_area_thres=peak_area_thres, min_scan=min_scan, max_scan=max_scan,\
+            max_peak=max_peak)
         except Exception:
-            pass
+            peak_dict={}
 
         if len(peak_dict) != 0:
             if len(result_dict) == 0:
