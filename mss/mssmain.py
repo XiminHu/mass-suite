@@ -15,6 +15,7 @@ import os
 import re
 import pyisopach
 from scipy import special
+import itertools 
 # from mss import mssdata
 # Modeling modules
 # from tensorflow import keras
@@ -113,7 +114,7 @@ Pmodel = rf_model_t
 
 def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
               thr=0.02, min_d=1, rt_window=1.5, peak_area_thres=1e5,
-              min_scan=7, max_scan=200, max_peak=5,
+              min_scan=5, max_scan=200, max_peak=5,
               min_scan_window=10, sn_range=7):
     '''
     firstly get rt, intensity from given mz and error out of the mzml file
@@ -142,7 +143,7 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
             # print(i)
             retention_time.append(scan.scan_time[0])
 
-            target_mz, target_index = mz_locator(scan.mz, input_mz, error)
+            _, target_index = mz_locator(scan.mz, input_mz, error)
             if len(target_index) == 0:
                 intensity.append(0)
             else:
@@ -296,16 +297,16 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
 
     # Noise filter
     if len(result_dict) > max_peak:
-        result_dict = {}
+        result_dict = dict(itertools.islice(result_dict.items(), max_peak))
 
     return result_dict
 
 
 # Code review
-def peak_list(mzml_scans, err_ppm=20, enable_score=True, mz_c_thres=5,
+def peak_list(mzml_scans, err_ppm=10, enable_score=True, mz_c_thres=5,
               peak_base=0.005, thr=0.02, min_d=1, rt_window=1.5,
-              peak_area_thres=1e5, min_scan=7, max_scan=50, 
-              max_peak=5, scan_thres=7):
+              peak_area_thres=1e5, min_scan=5, max_scan=50, 
+              max_peak=5):
     '''
     Generate a dataframe by looping throughout the
     whole mz space from a given mzml file
@@ -486,7 +487,7 @@ def formula_prediction(mzml_scan, input_mz, error, composition='CHON',
             # print(i)
             retention_time.append(scan.scan_time[0])
 
-            target_mz, target_index = mz_locator(scan.mz, input_mz, error)
+            _, target_index = mz_locator(scan.mz, input_mz, error)
             if len(target_index) == 0:
                 intensity.append(0)
             else:
