@@ -192,8 +192,8 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
                     # decreasing-in-time-series as alternative
                     x = np.linspace(h_range - 2, h_range, 3)
                     y = intensity[h_range - 2: h_range + 1]
-                    (slope, intercept, r_value,
-                     p_value, std_err) = scipy.stats.linregress(x, y)
+                    (_slope, _intercept, r_value,
+                     _p_value, _std_err) = scipy.stats.linregress(x, y)
                     # print(rt[h_range],r_value)
                     if abs(r_value) < 0.6:
                         break
