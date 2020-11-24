@@ -10,6 +10,7 @@ import pyisopach
 import plotly.offline as py
 from ipywidgets import interactive, HBox, VBox
 import pandas as pd
+import mssmain
 
 
 # TIC plot
@@ -299,7 +300,7 @@ def ms_chromatogram(mzml_scans, input_value, error,
         # print(i)
         retention_time.append(scan.scan_time[0])
 
-        target_mz, target_index = mz_locator(scan.mz, input_mz, error)
+        _, target_index = mz_locator(scan.mz, input_mz, error)
         if target_index == 'NA':
             intensity.append(0)
         else:
@@ -363,103 +364,11 @@ def ms_chromatogram(mzml_scans, input_value, error,
     return
 
 
-# Deal with roi, check peakonly
-def peak_pick(mzml_scans, input_mz, error, peak_base=5000,
-              thr=0.02, min_d=1, rt_window=1.5, peak_area_thres=1e5,
-              min_scan=15, max_scan=200, max_peak=7):
-    '''
-    rt, ints from ms_chromatogram_list
-    rt_window now set up for minutes
-    '''
-
-    # Important funciont, may need to be extracted out later
-    def ms_chromatogram_list(mzml_scans, input_mz, error):
-        '''
-        Generate a peak list for specific input_mz
-        over whole rt period from the mzml file
-        ***Most useful function!
-        '''
-        retention_time = []
-        intensity = []
-        for scan in mzml_scans:
-            # print(i)
-            retention_time.append(scan.scan_time[0])
-
-            target_mz, target_index = mz_locator(scan.mz, input_mz, error)
-            if target_index == 'NA':
-                intensity.append(0)
-            else:
-                intensity.append(sum(scan.i[target_index]))
-
-        return retention_time, intensity
-
-    rt, intensity = ms_chromatogram_list(mzml_scans, input_mz, error)
-
-    # Get rt_window corresponded scan number
-    scan_window = int((rt_window / (rt[int(len(intensity) / 2)] -
-                                    rt[int(len(intensity) / 2) - 1])) / 2)
-
-    # Get peak index
-    indexes = peakutils.indexes(intensity, thres=thr, min_dist=min_d)
-
-    result_dict = {}
-
-    for index in indexes:
-        h_range = index
-        l_range = index
-        base_intensity = peak_base
-
-        # Get the higher and lower boundary
-        while intensity[h_range] >= base_intensity:
-            h_range += 1
-            if h_range > len(intensity)-2:
-                break
-        while intensity[l_range] >= base_intensity:
-            l_range -= 1
-        # Output a range from the peak list
-
-        peak_range = []
-        if h_range - l_range >= min_scan:
-            if rt[h_range] - rt[l_range] <= rt_window:
-                peak_range = intensity[l_range:h_range]
-            else:
-                l_range = index - scan_window
-                h_range = index + scan_window
-                peak_range = intensity[l_range:h_range]
-                # print(index + scan_window)
-
-        # Intergration based on the simps function
-        if len(peak_range) >= min_scan:
-            integration_result = simps(peak_range)
-            if integration_result >= peak_area_thres:
-                if len(result_dict) == 0:
-                    result_dict.update({index: [l_range, h_range,
-                                                integration_result]})
-                elif integration_result != list(result_dict.values())[-1][2]:
-                    # Compare with previous item
-                    # commented out s_window cus it wasn't used!!!
-                    # s_window = abs(index - list(result_dict.keys())[-1])
-                    # if s_window > min_scan_window:
-                    result_dict.update({index: [l_range, h_range,
-                                                integration_result]})
-
-        # Filtering:
-        # 1. delete results that l_range/h_range within 5 scans
-        # 3. If still >5 then select top 5 results
-        # list(result_dict.values())[-1]
-
-    # Noise filter
-    if len(result_dict) > max_peak:
-        result_dict = {}
-
-    return result_dict
-
-
 def integration_plot(mzml_scans, input_mz, error,
                      peak_base=0.005, thr=0.02, min_d=1,
-                     rt_window=2, peak_area_thres=1e5):
+                     rt_window=2, peak_area_thres=1000):
 
-    result_dict = peak_pick(mzml_scans, input_mz, error)
+    result_dict = mssmain.peak_pick(mzml_scans, input_mz, error)
 
     def ms_chromatogram_list(mzml_scans, input_mz, error):
         '''
@@ -473,7 +382,7 @@ def integration_plot(mzml_scans, input_mz, error,
             # print(i)
             retention_time.append(scan.scan_time[0])
 
-            target_mz, target_index = mz_locator(scan.mz, input_mz, error)
+            _, target_index = mz_locator(scan.mz, input_mz, error)
             if target_index == 'NA':
                 intensity.append(0)
             else:
@@ -520,7 +429,7 @@ def iso_plot(mzml_scan, input_mz, error, formula):
         for scan in mzml_scans:
             retention_time.append(scan.scan_time[0])
 
-            target_mz, target_index = mz_locator(scan.mz, input_mz, error)
+            _, target_index = mz_locator(scan.mz, input_mz, error)
             if len(target_index) == 0:
                 intensity.append(0)
             else:
