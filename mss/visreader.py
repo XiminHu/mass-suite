@@ -10,7 +10,7 @@ import pyisopach
 import plotly.offline as py
 from ipywidgets import interactive, HBox, VBox
 import pandas as pd
-import mssmain
+from mss import mssmain
 
 
 # TIC plot
