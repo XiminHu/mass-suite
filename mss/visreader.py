@@ -278,7 +278,8 @@ def formula_mass(input_formula, mode='pos'):
 
 def ms_chromatogram(mzml_scans, input_value, error,
                     smooth=False, mode='pos', interactive=True,
-                    search=False, source='pubchem'):
+                    search=False, source='pubchem',
+                    fig_w=20, fig_h=10):
     '''
     Interactive chromatogram for selected m/z
     search is now only available on chemspider and pubchem
@@ -338,7 +339,7 @@ def ms_chromatogram(mzml_scans, input_value, error,
 
         fig.show()
     elif interactive is False:
-        plt.figure(figsize=(20, 10))
+        plt.figure(figsize=(fig_w, fig_h))
         plt.plot(retention_time, intensity)
         plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
         plt.xlabel('Retention Time(min)')
@@ -366,9 +367,11 @@ def ms_chromatogram(mzml_scans, input_value, error,
 
 def integration_plot(mzml_scans, input_mz, error,
                      peak_base=0.005, thr=0.02, min_d=1,
-                     rt_window=2, peak_area_thres=1000):
+                     rt_window=2, peak_area_thres=1000,
+                     fig_w=20, fig_h=10):
 
-    result_dict = mssmain.peak_pick(mzml_scans, input_mz, error)
+    result_dict = mssmain.peak_pick(mzml_scans, input_mz, error,
+                                    min_scan=5, peak_area_thres=0)
 
     def ms_chromatogram_list(mzml_scans, input_mz, error):
         '''
@@ -392,7 +395,7 @@ def integration_plot(mzml_scans, input_mz, error,
 
     rt, ints = ms_chromatogram_list(mzml_scans, input_mz, error)
 
-    plt.figure(figsize=(20, 10))
+    plt.figure(figsize=(fig_w, fig_h))
     plt.plot(rt, ints)
     plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
     plt.xlabel('Retention Time(min)')
