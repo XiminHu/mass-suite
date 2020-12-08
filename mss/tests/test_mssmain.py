@@ -23,7 +23,7 @@ class test_mssmain(unittest.TestCase):
     def test_noise_removal(self):
         test_scan = mssmain.get_scans(file_path)
         mssmain.noise_removal(test_scan)
-        assert sum(test_scan[0].i <= 5000) == 0,\
+        assert sum(test_scan[0].i <= 1000) == 0,\
             "noise didn't properly removed"
         return
 
