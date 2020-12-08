@@ -10,7 +10,7 @@ import pyisopach
 import plotly.offline as py
 from ipywidgets import interactive, HBox, VBox
 import pandas as pd
-from mss import mssmain
+from mssmain import peak_pick
 
 
 # TIC plot
@@ -370,7 +370,7 @@ def integration_plot(mzml_scans, input_mz, error,
                      rt_window=2, peak_area_thres=1000,
                      fig_w=20, fig_h=10):
 
-    result_dict = mssmain.peak_pick(mzml_scans, input_mz, error,
+    result_dict = peak_pick(mzml_scans, input_mz, error,
                                     min_scan=5, peak_area_thres=0)
 
     def ms_chromatogram_list(mzml_scans, input_mz, error):

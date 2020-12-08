@@ -117,7 +117,7 @@ Pmodel = rf_model_t
 def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
               peakutils_thres=0.02, min_d=1, rt_window=1.5,
               peak_area_thres=1e5, min_scan=5, max_scan=200, max_peak=5,
-              overlap_tol=10, sn_detect=7):
+              overlap_tol=15, sn_detect=15):
     '''
     The function is used to detect peak for given m/z's chromatogram
     error: in ppm
@@ -162,12 +162,12 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
 
     rt, intensity = ms_chromatogram_list(mzml_scans, input_mz, error)
 
-    # Get rt_window corresponded scan number
+    # Get rt_window corresponding to scan number
     scan_window = int(
                       (rt_window / (rt[int(len(intensity) / 2)] -
                        rt[int(len(intensity) / 2) - 1])) / 2)
-    rt_conversion_coef = rt[1] - rt[0]
-    # Get peak index
+    rt_conversion_coef = np.diff(rt).mean()
+    # Get peak index -- core
     indexes = peakutils.indexes(intensity, thres=peakutils_thres,
                                 min_dist=min_d)
 
@@ -184,9 +184,10 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
         # Get the higher and lower boundary
         while intensity[h_range] >= base_intensity:
             h_range += 1
+            if h_range >= len(intensity) - 1:
+                break
             if intensity[h_range] < half_intensity:  # potentially record this
                 if h_range - index > 4:  # fit r2 score,
-                    # keep record
                     # https://stackoverflow.com/questions/55649356/
                     # how-can-i-detect-if-trend-is-increasing-or-
                     # decreasing-in-time-series as alternative
@@ -197,30 +198,35 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
                     # print(rt[h_range],r_value)
                     if abs(r_value) < 0.6:
                         break
-                    elif h_range > len(intensity) - 2:
-                        break
+                    #elif h_range > len(intensity) - 2:
+                    #    break
         # Dev part 2, low priority since general peak shapes
         while intensity[l_range] >= base_intensity:
             l_range -= 1
+            if l_range <= 1:
+                break
             if intensity[l_range] < half_intensity:
                 pass  # backdoor for recording 1/2 rt point
-        # Output a range from the peak list
+        # Output a range for the peak list
 
         peak_range = []
         if h_range - l_range >= min_scan:
             if rt[h_range] - rt[l_range] <= rt_window:
                 peak_range = intensity[l_range:h_range]
             else:
-                l_range = index - scan_window
-                h_range = index + scan_window
+                if index - scan_window >= 1:
+                    l_range = index - scan_window
+                if index + scan_window <= len(intensity) - 1:
+                    h_range = index + scan_window
                 peak_range = intensity[l_range:h_range]
                 # print(index + scan_window)
 
         # Calculate for S/N
+        # Follow Agilent S/N document
         signal = intensity[index]
         neighbour_blank = (intensity[
                            l_range - sn_detect: l_range] +
-                           intensity[h_range + 1: h_range +
+                           intensity[h_range : h_range +
                            sn_detect + 1])
         noise = max(neighbour_blank)
         if noise != 0:
@@ -239,34 +245,42 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
         l_loc = index
         while intensity[h_loc] > half_intensity:
             h_loc += 1
+            if h_loc >= len(intensity) - 1:
+                break
         while intensity[l_loc] > half_intensity:
             l_loc -= 1
         # calculate for slope -- interpolation included-- pay attention!
-        h_half = h_loc + \
-            (half_intensity - intensity[h_loc]) / \
-            (intensity[h_loc - 1] - intensity[h_loc])
-        l_half = l_loc + \
-            (half_intensity - intensity[l_loc]) / \
-            (intensity[l_loc + 1] - intensity[l_loc])
-        # when transfer back use rt[index] instead
-        mb = (height - half_intensity) / \
-            ((h_half - index) * rt_conversion_coef)
-        ma = (height - half_intensity) / \
-            ((index - l_half) * rt_conversion_coef)
+        # h_half = h_loc + \
+        #     (half_intensity - intensity[h_loc]) / \
+        #     (intensity[h_loc - 1] - intensity[h_loc])
+        # l_half = l_loc + \
+        #     (half_intensity - intensity[l_loc]) / \
+        #     (intensity[l_loc + 1] - intensity[l_loc])
+        # # when transfer back use rt[index] instead
+        # mb = (height - half_intensity) / \
+        #     ((h_half - index) * rt_conversion_coef)
+        # ma = (height - half_intensity) / \
+        #     ((index - l_half) * rt_conversion_coef)
 
         # Intergration based on the simps function
         if len(peak_range) >= min_scan:
             integration_result = simps(peak_range)
             if integration_result >= peak_area_thres:
-                # Calculate Area/background ratio, i.e, peak area vs
-                # rectangular area as whole(if =1 then peak is a pleateu)
+                # https://doi.org/10.1016/j.chroma.2010.02.010
                 background_area = (h_range - l_range) * height
                 ab_ratio = round(integration_result / background_area, 3)
-
-                # Awaiting to be added:
-                # model prediction as the assessment score column
-                # score = model.fit(X_para from all above)
                 if enable_score is True:
+                    h_half = h_loc + \
+                        (half_intensity - intensity[h_loc]) / \
+                        (intensity[h_loc - 1] - intensity[h_loc])
+                    l_half = l_loc + \
+                        (half_intensity - intensity[l_loc]) / \
+                        (intensity[l_loc + 1] - intensity[l_loc])
+                    # when transfer back use rt[index] instead
+                    mb = (height - half_intensity) / \
+                        ((h_half - index) * rt_conversion_coef)
+                    ma = (height - half_intensity) / \
+                        ((index - l_half) * rt_conversion_coef)
                     w = rt[h_range] - rt[l_range]
                     t_r = (h_half - l_half) * rt_conversion_coef
                     l_width = rt[index] - rt[l_range]
@@ -297,14 +311,10 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
                         (result_dict.update(
                          {index: [l_range, h_range, integration_result,
                           sn, score]}))
-
-        # Filtering:
-        # 1. delete results that l_range/h_range within 5 scans
-        # 3. If still >5 then select top 5 results
-        # list(result_dict.values())[-1]
-
-    # Noise filter
+    # If still > max_peak then select top max_peak results
     if len(result_dict) > max_peak:
+        result_dict = dict(sorted(result_dict.items(),
+                                  key=lambda x: x[1][2],reverse=True))
         result_dict = dict(itertools.islice(result_dict.items(), max_peak))
 
     return result_dict
@@ -329,19 +339,22 @@ def peak_list(mzml_scans, err_ppm=10, enable_score=True, mz_c_thres=5,
 
     # Function to filter out empty mz slots to speed up the process
     def mz_gen(mzml_scans, err_ppm, mz_c_thres):
+        #Function remake needed
         pmz = []
         for scan in mzml_scans:
             pmz.append(scan.mz)
         pmz = np.hstack(pmz).squeeze()
 
-        # Function to generate a reference mz list using a defined step
-        # according to user setting
+        #According to msdial it should be mz + error * mz
+        #To avoid mz slicing issue
+        #Gap used to be 2*error*mz
+        #https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4449330/#SD1
         def mz_list_gen(minmz, maxmz, error_ppm):
             error = error_ppm * 1e-6
             mz_list = [minmz]
             mz = minmz
             while mz <= maxmz:
-                mz = mz + 2 * error * mz
+                mz = mz + error * mz
                 mz_list.append(mz)
             return mz_list
 
