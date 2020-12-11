@@ -373,7 +373,7 @@ def peak_list(mzml_scans, err_ppm=10, enable_score=True, mz_c_thres=5,
                                   peak_area_thres=peak_area_thres,
                                   min_scan=min_scan, max_scan=max_scan,
                                   max_peak=max_peak)
-        except Exception:
+        except Exception: # Catch exception?
             peak_dict = {}
 
         if len(peak_dict) != 0:
@@ -504,8 +504,6 @@ def formula_prediction(mzml_scan, input_mz, error, composition='CHON',
             if len(target_index) == 0:
                 intensity.append(0)
             else:
-                # intensity.append(scan.i[target_index])
-                # if all_than_close=True
                 intensity.append(sum(scan.i[target_index]))
 
         return retention_time, intensity
@@ -514,17 +512,17 @@ def formula_prediction(mzml_scan, input_mz, error, composition='CHON',
         idx = np.abs(np.asarray(lst) - K).argmin()
         return idx
 
-    mz_fit = ms_chromatogram_list(mzml_scan, input_mz, error)[1]
-    scan = mzml_scan[np.argmax(mz_fit)]
+    intensity_max = ms_chromatogram_list(mzml_scan, input_mz, error)[1]
+    scan = mzml_scan[np.argmax(intensity_max)]
 
     mz = scan.mz
-    ints = scan.i
+    inten = scan.i
 
     precursor_idx = closest(mz, input_mz)
     precursor_mz = mz[precursor_idx]
-    precursor_ints = ints[precursor_idx]
+    precursor_ints = inten[precursor_idx]
 
-    rel_abundance = [i / precursor_ints * 100 for i in ints]
+    rel_abundance = [i / precursor_ints * 100 for i in inten]
 
     prediction_table = formula_calc(
                         precursor_mz, composition,
@@ -556,11 +554,11 @@ def formula_prediction(mzml_scan, input_mz, error, composition='CHON',
     for formula in prediction_table.index:
         mol = pyisopach.Molecule(formula)
         istp_mass = mol.isotopic_distribution()[0]
-        istp_ints = mol.isotopic_distribution()[1]
-        idx = np.argwhere(istp_ints >= relintensity_thres).reshape(1, -1)[0]
+        istp_inten = mol.isotopic_distribution()[1]
+        idx = np.argwhere(istp_inten >= relintensity_thres).reshape(1, -1)[0]
         # Ref SIRUIS 2013 paper
         m_list = istp_mass[idx]
-        f_list = istp_ints[idx]
+        f_list = istp_inten[idx]
 
         theo_spec = list(zip(m_list, f_list))
 
@@ -571,8 +569,8 @@ def formula_prediction(mzml_scan, input_mz, error, composition='CHON',
         for p in theo_spec:
 
             measured_peak = [i for i in measured_spec if
-                             i[0] >= p[0]*(1-1e-6*7)
-                             and i[0] <= p[0]*(1+1e-6*7)]
+                             i[0] >= p[0] * (1 - 1e-6 * 7)
+                             and i[0] <= p[0] * (1 + 1e-6 * 7)]
             if len(measured_peak) != 0:
                 hit_peak = min(measured_peak, key=lambda peak: dist(peak, p))
                 # Function from SIRIUS, may need later validation
