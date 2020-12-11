@@ -52,18 +52,21 @@ def noise_removal(mzml_scans, int_thres=1000):
     '''
     Remove mz&i pairs that i lower than int_thres
     from whole mzml file, looping through scans
+    Only remove MS1 noise for now
     the output will overwrite the original mzml file
     int_thres: threshold for removing noises
     '''
     for scan in mzml_scans:
-        drop_index = np.argwhere(scan.i <= int_thres)
-        scan.i = np.delete(scan.i, drop_index)
-        scan.mz = np.delete(scan.mz, drop_index)
+        if scan.ms_level == 1:
+            drop_index = np.argwhere(scan.i <= int_thres)
+            scan.i = np.delete(scan.i, drop_index)
+            scan.mz = np.delete(scan.mz, drop_index)
+        elif scan.ms_level != 1:
+            continue
 
     return
 
 
-# Code review
 # updated to all_than_close, when false only select closest one, when true
 # append all, use as a backdoor for now if closest algorithm messed up
 def mz_locator(input_list, mz, error, all_than_close=True):
@@ -107,7 +110,7 @@ def mz_locator(input_list, mz, error, all_than_close=True):
     return t_mz, t_i
 
 
-# Read model for peak assessment
+#def module?
 this_dir, this_filename = os.path.split(__file__)
 Model_file_t = os.path.join(this_dir, 'rfmodel_tuned.pkl')
 rf_model_t = pickle.load(open(Model_file_t, 'rb'))
@@ -155,7 +158,7 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
                 intensity.append(0)
             else:
                 # intensity.append(scan.i[target_index])
-                # if all_than_close=True
+                # CR -> if all_than_close=True
                 intensity.append(sum(scan.i[target_index]))
 
         return retention_time, intensity
@@ -167,7 +170,7 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
                       (rt_window / (rt[int(len(intensity) / 2)] -
                        rt[int(len(intensity) / 2) - 1])) / 2)
     rt_conversion_coef = np.diff(rt).mean()
-    # Get peak index -- core
+    # Get peak index
     indexes = peakutils.indexes(intensity, thres=peakutils_thres,
                                 min_dist=min_d)
 
@@ -177,7 +180,6 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
     for index in indexes:
         h_range = index
         l_range = index
-        # use relative thres, also considering S/N, 1/2 rt point?
         base_intensity = peak_thres * intensity[index]
         half_intensity = 0.5 * intensity[index]
 
@@ -198,44 +200,42 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
                     # print(rt[h_range],r_value)
                     if abs(r_value) < 0.6:
                         break
-                    #elif h_range > len(intensity) - 2:
-                    #    break
         # Dev part 2, low priority since general peak shapes
         while intensity[l_range] >= base_intensity:
             l_range -= 1
             if l_range <= 1:
                 break
             if intensity[l_range] < half_intensity:
-                pass  # backdoor for recording 1/2 rt point
-        # Output a range for the peak list
+                pass
 
+        # Output a range for the peak list
+        # If len(intensity) - h_range < 4:
+        #     h_range = h_range + 3
         peak_range = []
         if h_range - l_range >= min_scan:
             if rt[h_range] - rt[l_range] <= rt_window:
                 peak_range = intensity[l_range:h_range]
             else:
-                if index - scan_window >= 1:
-                    l_range = index - scan_window
-                if index + scan_window <= len(intensity) - 1:
-                    h_range = index + scan_window
+                if index - scan_window / 2 >= 1:
+                    l_range = int(index - scan_window / 2)
+                if index + scan_window / 2 <= len(intensity) - 1:
+                    h_range = int(index + scan_window / 2)
                 peak_range = intensity[l_range:h_range]
                 # print(index + scan_window)
 
-        # Calculate for S/N
         # Follow Agilent S/N document
-        signal = intensity[index]
-        neighbour_blank = (intensity[
-                           l_range - sn_detect: l_range] +
-                           intensity[h_range : h_range +
-                           sn_detect + 1])
-        noise = max(neighbour_blank)
-        if noise != 0:
-            sn = round(signal / noise, 3)
-        elif noise == 0:
-            sn = 0
+        if len(peak_range) != 0:
+            height = max(peak_range)
+            neighbour_blank = (intensity[
+                            l_range - sn_detect: l_range] +
+                            intensity[h_range : h_range +
+                            sn_detect + 1])
+            noise = np.std(neighbour_blank)
+            if noise != 0:
+                sn = round(height / noise, 3)
+            elif noise == 0:
+                sn = 0
 
-        # Calculate height/width, consider log10 transform
-        height = signal
         width = rt[h_range] - rt[l_range]
         hw_ratio = round(height / width, 0)
 
@@ -247,20 +247,8 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
             h_loc += 1
             if h_loc >= len(intensity) - 1:
                 break
-        while intensity[l_loc] > half_intensity:
+        while intensity[l_loc] > half_intensity and l_loc > 0:
             l_loc -= 1
-        # calculate for slope -- interpolation included-- pay attention!
-        # h_half = h_loc + \
-        #     (half_intensity - intensity[h_loc]) / \
-        #     (intensity[h_loc - 1] - intensity[h_loc])
-        # l_half = l_loc + \
-        #     (half_intensity - intensity[l_loc]) / \
-        #     (intensity[l_loc + 1] - intensity[l_loc])
-        # # when transfer back use rt[index] instead
-        # mb = (height - half_intensity) / \
-        #     ((h_half - index) * rt_conversion_coef)
-        # ma = (height - half_intensity) / \
-        #     ((index - l_half) * rt_conversion_coef)
 
         # Intergration based on the simps function
         if len(peak_range) >= min_scan:
@@ -297,7 +285,6 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
                     score = int(Pmodel.predict(x_input.reshape(1, -1)))
                 elif enable_score is False:
                     score = 1
-                # final result append score
 
                 # appending to result
                 if len(result_dict) == 0:
@@ -369,7 +356,7 @@ def peak_list(mzml_scans, err_ppm=10, enable_score=True, mz_c_thres=5,
 
         return final_mz
 
-    mzlist = mz_gen(mzml_scans, err_ppm, mz_c_thres)  # New list for looping
+    mzlist = mz_gen(mzml_scans, err_ppm, mz_c_thres)
     print('Finding peaks...')
 
     result_dict = {}
