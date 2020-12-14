@@ -2,24 +2,22 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 import os
+from mssmain import ms_chromatogram_list, batch_scans, peak_list
 """This file contains the functions needed to correct the peak positions
 of different samples accumulated in one day's worth of analysis."""
 
 
-def stack(batch_path):
+def stack(d_batch):
     """This function compiles all samples files into one dataframe
     for analysis. It takes in files that are of the .txt type."""
     all_samples = []
     # Calculating the number of files in path
-    num_files = len([f for f in os.listdir(batch_path)if
-                    os.path.isfile(os.path.join(batch_path, f))])
-    print("Reading in files...")
-    # Reading in files into a list
-    for files in range(num_files):
-        sample = os.listdir(batch_path)[files]
-        sample_df = pd.read_csv(batch_path + sample,
-                                dtype=np.float32)
-        sample_df = sample_df.drop([sample_df.columns[0]], axis=1)
+    num_files = len(d_batch)
+    for i in range(num_files):
+        sample_name = d_batch[i]
+        sample_df = pd.DataFrame(sample_name, columns=['m/z',
+                                 'rt', 'sn', 'score', 'peak area'],
+                                 dtype=np.float32)
         all_samples += [sample_df]
     # Combining all the dataframes into one
     total_samples = pd.concat(all_samples)
@@ -32,18 +30,22 @@ def stack(batch_path):
     return num_files, total_samples
 
 
-def realignment(batch_path, batch_name, file_type, rt_error, MZ_error):
+def realignment(d_batch, export_name, name_list, align_rt_err, align_mz_err):
     """This function works by using one .txt file as a reference in which
     other files realigned to in terms of precursor and RT. """
-    RT_error = rt_error  # units of minutes, can be adjusted
+    np.warnings.filterwarnings('ignore') # ignore warning from sn inf value
+    RT_error = align_rt_err  # units of minutes, can be adjusted
     alignment_df = pd.DataFrame()
-    mz_error = MZ_error
-    standard_sample = os.listdir(batch_path)[0]  # first sample
+    mz_error = align_mz_err
+    # standard_sample = os.listdir(batch_path)[0]  # first sample_name
     # reads .txt file into a dataframe
-    standard_df = pd.read_csv(batch_path + standard_sample, usecols=['rt',
-                              'm/z', 'sn', 'score', 'peak area'],
-                              dtype=np.float32)
-    # Creating the reference df based off 1st sample
+    # standard_df = pd.read_csv(batch_path + standard_sample, usecols=['rt',
+    #                          'm/z', 'sn', 'score', 'peak area'],
+    #                          dtype=np.float32)
+    standard_df = pd.DataFrame(d_batch[0], columns=['m/z',
+                            'rt', 'sn', 'score', 'peak area'],
+                            dtype=np.float32)
+    # Creating the reference df based off 1st sample_name
     alignment_df['m/z'] = standard_df.iloc[:, 0]
     alignment_df['rt'] = standard_df.iloc[:, 1]
     alignment_df['sn'] = standard_df.iloc[:, 2]
@@ -61,14 +63,14 @@ def realignment(batch_path, batch_name, file_type, rt_error, MZ_error):
     alignment_df.loc[alignment_df.sn == 0, 'sn'] = float('inf')
     alignment_df.loc[alignment_df.score == 3.0, 'score'] = 0.1
     alignment_df.loc[alignment_df.score == 2.0, 'score'] = 0.6
-    # col_index to track where to add sample columns
+    # col_index to track where to add sample_name columns
     col_index = 8
-    num_files, total_samp = stack(batch_path)
+    num_files, total_samp = stack(d_batch)
     for files in range(num_files):
-        sample = os.listdir(batch_path)[files]  # Creates file columns
-        sample = sample[:-4]  # removes extension part in sample name
-        alignment_df[sample] = 0.0
-        alignment_df[sample] = alignment_df[sample].astype('float32')
+        sample_name = name_list[files]  # Creates file columns
+        sample_name = sample_name[:-5]  # removes extension part in sample_name name
+        alignment_df[sample_name] = 0.0
+        alignment_df[sample_name] = alignment_df[sample_name].astype('float32')
     print("Initial reference built")
     print("Alignment beginning..")
     for row in tqdm(range(len(total_samp))):
@@ -78,7 +80,7 @@ def realignment(batch_path, batch_name, file_type, rt_error, MZ_error):
             pass
         row_max = len(alignment_df)
         if row < range(len(total_samp))[-1]:
-            # Loops until a change in sample occurs by index
+            # Loops until a change in sample_name occurs by index
             if total_samp.index[row] < total_samp.index[row + 1]:
                 # checks to see if row exists in reference or not
                 overlap = np.where(((alignment_df.iloc[:, 1] - RT_error)
@@ -131,7 +133,7 @@ def realignment(batch_path, batch_name, file_type, rt_error, MZ_error):
                     alignment_df.at[alignment_df.index[
                                    -1], 'Sum score'] = total_samp.iloc[row, 3]
             else:
-                # if index changes, moves to next sample column
+                # if index changes, moves to next sample_name column
                 col_index += 1
                 overlap = np.where(((alignment_df.iloc[:, 1] - RT_error)
                                    <= total_samp.iloc[row, 1]) &
@@ -252,10 +254,9 @@ def realignment(batch_path, batch_name, file_type, rt_error, MZ_error):
                                                       'Sum score']/count)
         else:
             invalid.append(rows)
-            print("Identified invalid peak(s)")  # For detection error
+            # print("Identified invalid peak(s)")  # For detection error
     if len(invalid) > 0:
-        for i in range(len(invalid)):
-            alignment_df = alignment_df.drop(alignment_df.index[invalid[i]])
+        alignment_df = alignment_df.drop(invalid)
         alignment_df = alignment_df.reset_index(drop=True)
         print("Removed invalid peak(s) from reference")
     else:
@@ -269,7 +270,39 @@ def realignment(batch_path, batch_name, file_type, rt_error, MZ_error):
                                        'Average m/z': 5})
     print("Alignment done!")
     # converts file for saving
-    alignment_df.to_csv(batch_path + batch_name +
-                        file_type, header=True, index=False)
-    print("File saved")
+    if export_name == None:
+        print("Result didn't exported!")
+        pass
+    else:
+        alignment_df.to_csv(export_name,
+                            header=True, index=False)
+    print("Result saved to " + str(export_name))
     return alignment_df
+
+
+def mss_process(path, export_name, align_mz_err=0.015, align_rt_err=0.1,
+              remove_noise=True, thres_noise=1000,
+              err_ppm=10, enable_score=True, mz_c_thres=5, peak_base=0.005,
+              peakutils_thres=0.02, min_d=1, rt_window=1.5,
+              peak_area_thres=1e4, min_scan=5, max_scan=50,
+              max_peak=5):
+    print('Reading files...')
+    batch_scan, name_list = batch_scans(path, remove_noise=remove_noise,
+                                            thres_noise=thres_noise)
+    print('Processing peak list...')
+    d_peak = []
+    for i in range(len(batch_scan)):
+        print('Processing', str(int(i + 1)), 'out of ', len(batch_scan), 'file')
+        d_result = peak_list(batch_scan[i], err_ppm=err_ppm,
+                            enable_score=enable_score, mz_c_thres=mz_c_thres,
+                            peak_base=peak_base, peakutils_thres=peakutils_thres,
+                            min_d=min_d, rt_window=rt_window,
+                            peak_area_thres=peak_area_thres, min_scan=min_scan,
+                            max_scan=max_scan, max_peak=max_peak)
+        d_peak.append(d_result)
+
+    d_align = realignment(d_peak, export_name, name_list, align_rt_err=align_rt_err,
+                        align_mz_err=align_mz_err)
+    
+    print('Finished!')
+    return d_align

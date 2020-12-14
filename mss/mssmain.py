@@ -117,6 +117,31 @@ rf_model_t = pickle.load(open(Model_file_t, 'rb'))
 Pmodel = rf_model_t
 
 
+def ms_chromatogram_list(mzml_scans, input_mz, error):
+    '''
+    Generate a peak list for specific input_mz over
+    whole rt period from the mzml file
+    ***Most useful function!
+    '''
+
+    # Create empty list to store the data
+    retention_time = []
+    intensity = []
+    for scan in mzml_scans:
+        # print(i)
+        retention_time.append(scan.scan_time[0])
+
+        _, target_index = mz_locator(scan.mz, input_mz, error)
+        if len(target_index) == 0:
+            intensity.append(0)
+        else:
+            # intensity.append(scan.i[target_index])
+            # CR -> if all_than_close=True
+            # Change from sum to max
+            intensity.append(max(scan.i[target_index]))
+
+    return retention_time, intensity
+
 def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
               peakutils_thres=0.02, min_d=1, rt_window=1.5,
               peak_area_thres=1e5, min_scan=5, max_scan=200, max_peak=5,
@@ -139,29 +164,6 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
 
     # Important funciont, may need to be extracted out later
     # Data output from the chromatogram_plot function
-    def ms_chromatogram_list(mzml_scans, input_mz, error):
-        '''
-        Generate a peak list for specific input_mz over
-        whole rt period from the mzml file
-        ***Most useful function!
-        '''
-
-        # Create empty list to store the data
-        retention_time = []
-        intensity = []
-        for scan in mzml_scans:
-            # print(i)
-            retention_time.append(scan.scan_time[0])
-
-            _, target_index = mz_locator(scan.mz, input_mz, error)
-            if len(target_index) == 0:
-                intensity.append(0)
-            else:
-                # intensity.append(scan.i[target_index])
-                # CR -> if all_than_close=True
-                intensity.append(sum(scan.i[target_index]))
-
-        return retention_time, intensity
 
     rt, intensity = ms_chromatogram_list(mzml_scans, input_mz, error)
 
@@ -486,27 +488,6 @@ def formula_prediction(mzml_scan, input_mz, error, composition='CHON',
     mzml_scans: mzfile
     time: selected time for the scan
     '''
-    def ms_chromatogram_list(mzml_scans, input_mz, error):
-        '''
-        Generate a peak list for specific input_mz over
-        whole rt period from the mzml file
-        ***Most useful function!
-        '''
-
-        # Create empty list to store the data
-        retention_time = []
-        intensity = []
-        for scan in mzml_scans:
-            # print(i)
-            retention_time.append(scan.scan_time[0])
-
-            _, target_index = mz_locator(scan.mz, input_mz, error)
-            if len(target_index) == 0:
-                intensity.append(0)
-            else:
-                intensity.append(sum(scan.i[target_index]))
-
-        return retention_time, intensity
 
     def closest(lst, K):
         idx = np.abs(np.asarray(lst) - K).argmin()

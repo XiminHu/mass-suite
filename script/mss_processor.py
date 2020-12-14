@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 sys.path.append('../mss')
-import mssmain as mss
+from mssmain import batch_scans, peak_list
 
 path = input('Please input the mzml file path:')
 noise_thres = int(input('Please input the noise threshold for ms1 spectrum:'))
@@ -23,13 +23,13 @@ export_name = input('export name:')
 
 
 print('Reading mzml files...')
-batch_scan, file_list = mss.batch_scans(path, True, noise_thres)
+batch_scan, file_list = batch_scans(path, True, noise_thres)
 
 print('Processing peak list...')
 d_peak = []
 for i in range(len(batch_scan)):
     print('Processing', str(int(i + 1)), 'out of ', len(batch_scan), 'file')
-    d_result = mss.peak_list(batch_scan[i], 20, enable_score=model_score)
+    d_result = peak_list(batch_scan[i], 20, enable_score=model_score)
     d_peak.append(d_result)
 
 

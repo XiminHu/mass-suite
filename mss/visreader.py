@@ -10,11 +10,11 @@ import pyisopach
 import plotly.offline as py
 from ipywidgets import interactive, HBox, VBox
 import pandas as pd
-from mssmain import peak_pick
+from mssmain import peak_pick, ms_chromatogram_list
 
 
 # TIC plot
-def tic_plot(mzml_scans, interactive=True):
+def tic_plot(mzml_scans, interactive=True, f_width=10, f_height=6):
     '''
     Static tic plot function
     '''
@@ -30,8 +30,8 @@ def tic_plot(mzml_scans, interactive=True):
 
         fig.update_layout(
             template='simple_white',
-            width=1000,
-            height=600,
+            width=f_width * 100,
+            height=f_height * 100,
             xaxis=dict(title='Retention Time (min)',
                        rangeslider=dict(visible=True)),
             yaxis=dict(
@@ -43,7 +43,7 @@ def tic_plot(mzml_scans, interactive=True):
         fig.show()
 
     elif interactive is False:
-        plt.figure(figsize=(10, 6))
+        plt.figure(figsize=(f_width, f_height))
         plt.plot(time, TIC)
         plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
         plt.xlabel('RT (min)')
@@ -54,7 +54,8 @@ def tic_plot(mzml_scans, interactive=True):
     return
 
 
-def ms_plot(mzml_scans, time, interactive=False, search=False, source='MoNA'):
+def ms_plot(mzml_scans, time, interactive=False, search=False,
+            f_width=10, f_height=6, source='MoNA'):
     '''
     Interactive spectrum plot with nearest retention time from the given scan
     mzml_scans: mzfile
@@ -76,10 +77,10 @@ def ms_plot(mzml_scans, time, interactive=False, search=False, source='MoNA'):
                           marker_line_width=0.5, opacity=1)
         fig.update_layout(
                 title_text=str(round(rt, 3)) +
-                ' min MS1 spectrum, input ' + str(time) + ' min',
+                ' MS spectrum @ ' + str(time) + ' min',
                 template='simple_white',
-                width=1000,
-                height=600,
+                width=f_width * 100,
+                height=f_height * 100,
                 xaxis={'title': 'm/z ratio'},
                 yaxis=dict(
                     showexponent='all',
@@ -88,12 +89,12 @@ def ms_plot(mzml_scans, time, interactive=False, search=False, source='MoNA'):
         fig.show()
 
     elif interactive is False:
-        plt.figure(figsize=(10, 5))
+        plt.figure(figsize=(f_width, f_height))
         plt.bar(mz, ints, width=1.0)
         plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
         plt.xlabel('m/z')
         plt.ylabel('Intensity')
-        plt.title('MS spectrum')
+        plt.title('MS spectrum @' + str(time) + 'min')
 
     if search is True:
         for i in range(len(mz)):
@@ -247,7 +248,7 @@ def formula_mass(input_formula, mode='pos'):
     match the string list into a given list of element weight
     add adduct/delete H according to mode -- also have neutral mode
     '''
-    # Define a list
+    # Define a list -- expand?
     elist = {'C': 12,
              'H': 1.00782,
              'N': 14.0031,
@@ -277,9 +278,9 @@ def formula_mass(input_formula, mode='pos'):
 
 
 def ms_chromatogram(mzml_scans, input_value, error,
-                    smooth=False, mode='pos', interactive=True,
+                    fillgap=False, mode='pos', interactive=True,
                     search=False, source='pubchem',
-                    fig_w=20, fig_h=10):
+                    f_width=20, f_height=10):
     '''
     Interactive chromatogram for selected m/z
     search is now only available on chemspider and pubchem
@@ -293,8 +294,6 @@ def ms_chromatogram(mzml_scans, input_value, error,
     else:
         print('Cant recognize input type!')
 
-    print(round(input_mz, 3))
-
     retention_time = []
     intensity = []
     for scan in mzml_scans:
@@ -305,21 +304,22 @@ def ms_chromatogram(mzml_scans, input_value, error,
         if target_index == 'NA':
             intensity.append(0)
         else:
-            intensity.append(sum(scan.i[target_index]))
+            intensity.append(max(scan.i[target_index]))
 
-    def peak_smooth(input_list, baseline=500):
-        for i, int_ in enumerate(input_list):
+    def fill_gap(input_list, baseline=500):
+        for i, intens in enumerate(input_list):
             if i > 1 and i < len(input_list)-3:
-                if int_ > baseline:
+                if intens > baseline:
                     for index in np.arange(i+1, i+3):
                         if input_list[index] == 0:
                             input_list[index] = (input_list[index-1] +
                                                  input_list[index+1])/2
                         else:
                             continue
+        return
 
-    if smooth is True:
-        peak_smooth(intensity)
+    if fillgap is True:
+        fill_gap(intensity)
 
     if interactive is True:
         fig = go.Figure([go.Scatter(x=retention_time, y=intensity,
@@ -329,8 +329,8 @@ def ms_chromatogram(mzml_scans, input_value, error,
             title_text=str(round(input_mz, 2)) +
             ' chromatogram, error ' + str(error),
             template='simple_white',
-            width=1000,
-            height=600,
+            width=f_width * 100,
+            height=f_height * 100,
             xaxis={'title': 'Retention Time (min)'},
             yaxis=dict(
                 showexponent='all',
@@ -339,12 +339,12 @@ def ms_chromatogram(mzml_scans, input_value, error,
 
         fig.show()
     elif interactive is False:
-        plt.figure(figsize=(fig_w, fig_h))
+        plt.figure(figsize=(f_width, f_height))
         plt.plot(retention_time, intensity)
         plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
         plt.xlabel('Retention Time(min)')
         plt.ylabel('Intensity')
-        plt.title('MS1 spectrum')
+        plt.title('Chromatogram for m/z ' + str(round(input_mz, 3)))
         plt.xlim(0, retention_time[-1])
         plt.ylim(0, )
         plt.show()
@@ -366,36 +366,14 @@ def ms_chromatogram(mzml_scans, input_value, error,
 
 
 def integration_plot(mzml_scans, input_mz, error,
-                     peak_base=0.005, thr=0.02, min_d=1,
-                     rt_window=2, peak_area_thres=1000,
-                     fig_w=20, fig_h=10):
+                     f_width=20, f_height=10):
 
     result_dict = peak_pick(mzml_scans, input_mz, error,
                                     min_scan=5, peak_area_thres=0)
 
-    def ms_chromatogram_list(mzml_scans, input_mz, error):
-        '''
-        Generate a peak list for specific input_mz
-        over whole rt period from the mzml file
-        ***Most useful function!
-        '''
-        retention_time = []
-        intensity = []
-        for scan in mzml_scans:
-            # print(i)
-            retention_time.append(scan.scan_time[0])
-
-            _, target_index = mz_locator(scan.mz, input_mz, error)
-            if target_index == 'NA':
-                intensity.append(0)
-            else:
-                intensity.append(sum(scan.i[target_index]))
-
-        return retention_time, intensity
-
     rt, ints = ms_chromatogram_list(mzml_scans, input_mz, error)
 
-    plt.figure(figsize=(fig_w, fig_h))
+    plt.figure(figsize=(f_width, f_height))
     plt.plot(rt, ints)
     plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
     plt.xlabel('Retention Time(min)')
@@ -419,33 +397,12 @@ def iso_plot(mzml_scan, input_mz, error, formula):
     mzml_scans: mzfile
     time: selected time for the scan
     '''
-    def ms_chromatogram_list(mzml_scans, input_mz, error):
-        '''
-        Generate a peak list for specific input_mz over
-        whole rt period from the mzml file
-        ***Most useful function!
-        '''
-
-        # Create empty list to store the data
-        retention_time = []
-        intensity = []
-        for scan in mzml_scans:
-            retention_time.append(scan.scan_time[0])
-
-            _, target_index = mz_locator(scan.mz, input_mz, error)
-            if len(target_index) == 0:
-                intensity.append(0)
-            else:
-                intensity.append(sum(scan.i[target_index]))
-
-        return retention_time, intensity
-
     def closest(lst, K):
         idx = np.abs(np.asarray(lst) - K).argmin()
         return idx
 
-    slt_mz = ms_chromatogram_list(mzml_scan, input_mz, error)[1]
-    scan = mzml_scan[np.argmax(slt_mz)]
+    select_intensity = ms_chromatogram_list(mzml_scan, input_mz, error)[1]
+    scan = mzml_scan[np.argmax(select_intensity)]
 
     mz = scan.mz
     ints = scan.i
