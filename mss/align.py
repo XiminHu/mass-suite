@@ -206,5 +206,3 @@ def mss_process(path, export_name, mz_error=0.01, RT_error=0.1,
     
     print('Finished!')
     return d_align
-
-mss_process('D:/UW/directproject/example_data/', 'D:/UW/directproject/example_data/example_peaklist/test.csv', thres_noise=20000,enable_score=False)
