@@ -28,6 +28,7 @@ The mass-suite package is also providing a data mining option for the feature cl
 ## Update
 - 2020/09/01: Feature extraction pipeline validated comparing with msdial pipeline output
 - 2020/09/07: Updated formula prediction and isotopic score function, currently support formula prediction for small molecules under 500 Da
+- 2020/12/15: Rewrite alignment module, fixed bugs in peak picking functions
 
 ## Installation & major dependencies
 #### Activating the virtual environment
