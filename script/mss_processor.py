@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 sys.path.append('../mss')
-from mssmain import batch_scans, peak_list
+# from mssmain import batch_scans, peak_list
 
 path = input('Please input the mzml file path:')
 noise_thres = int(input('Please input the noise threshold for ms1 spectrum:'))
