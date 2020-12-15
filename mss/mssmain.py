@@ -110,7 +110,7 @@ def mz_locator(input_list, mz, error, all_than_close=True):
     return t_mz, t_i
 
 
-#def module?
+# def module?
 this_dir, this_filename = os.path.split(__file__)
 Model_file_t = os.path.join(this_dir, 'rfmodel_tuned.pkl')
 rf_model_t = pickle.load(open(Model_file_t, 'rb'))
@@ -142,6 +142,7 @@ def ms_chromatogram_list(mzml_scans, input_mz, error):
 
     return retention_time, intensity
 
+
 def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
               peakutils_thres=0.02, min_d=1, rt_window=1.5,
               peak_area_thres=1e5, min_scan=5, max_scan=200, max_peak=5,
@@ -169,8 +170,8 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
 
     # Get rt_window corresponding to scan number
     scan_window = int(
-                      (rt_window / (rt[int(len(intensity) / 2)] -
-                       rt[int(len(intensity) / 2) - 1])) / 2)
+        (rt_window / (rt[int(len(intensity) / 2)] -
+                      rt[int(len(intensity) / 2) - 1])) / 2)
     rt_conversion_coef = np.diff(rt).mean()
     # Get peak index
     indexes = peakutils.indexes(intensity, thres=peakutils_thres,
@@ -229,9 +230,9 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
         if len(peak_range) != 0:
             height = max(peak_range)
             neighbour_blank = (intensity[
-                            l_range - sn_detect: l_range] +
-                            intensity[h_range : h_range +
-                            sn_detect + 1])
+                l_range - sn_detect: l_range] +
+                intensity[h_range: h_range +
+                          sn_detect + 1])
             noise = np.std(neighbour_blank)
             if noise != 0:
                 sn = round(height / noise, 3)
@@ -292,18 +293,18 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
                 if len(result_dict) == 0:
                     (result_dict.update(
                      {index: [l_range, h_range,
-                      integration_result, sn, score]}))
+                              integration_result, sn, score]}))
                 # Compare with previous item
                 elif integration_result != list(result_dict.values())[-1][2]:
                     s_window = abs(index - list(result_dict.keys())[-1])
                     if s_window > overlap_tol:
                         (result_dict.update(
                          {index: [l_range, h_range, integration_result,
-                          sn, score]}))
+                                  sn, score]}))
     # If still > max_peak then select top max_peak results
     if len(result_dict) > max_peak:
         result_dict = dict(sorted(result_dict.items(),
-                                  key=lambda x: x[1][2],reverse=True))
+                                  key=lambda x: x[1][2], reverse=True))
         result_dict = dict(itertools.islice(result_dict.items(), max_peak))
 
     return result_dict
@@ -328,16 +329,16 @@ def peak_list(mzml_scans, err_ppm=10, enable_score=True, mz_c_thres=5,
 
     # Function to filter out empty mz slots to speed up the process
     def mz_gen(mzml_scans, err_ppm, mz_c_thres):
-        #Function remake needed
+        # Function remake needed
         pmz = []
         for scan in mzml_scans:
             pmz.append(scan.mz)
         pmz = np.hstack(pmz).squeeze()
 
-        #According to msdial it should be mz + error * mz
-        #To avoid mz slicing issue
-        #Gap used to be 2*error*mz
-        #https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4449330/#SD1
+        # According to msdial it should be mz + error * mz
+        # To avoid mz slicing issue
+        # Gap used to be 2*error*mz
+        # https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4449330/#SD1
         def mz_list_gen(minmz, maxmz, error_ppm):
             error = error_ppm * 1e-6
             mz_list = [minmz]
@@ -375,7 +376,7 @@ def peak_list(mzml_scans, err_ppm=10, enable_score=True, mz_c_thres=5,
                                   peak_area_thres=peak_area_thres,
                                   min_scan=min_scan, max_scan=max_scan,
                                   max_peak=max_peak)
-        except Exception: # Catch exception?
+        except Exception:  # Catch exception?
             peak_dict = {}
 
         if len(peak_dict) != 0:
@@ -506,8 +507,8 @@ def formula_prediction(mzml_scan, input_mz, error, composition='CHON',
     rel_abundance = [i / precursor_ints * 100 for i in inten]
 
     prediction_table = formula_calc(
-                        precursor_mz, composition,
-                        error=f_error, mode='pos')
+        precursor_mz, composition,
+        error=f_error, mode='pos')
 
     # Find closest pair
     measured_spec = list(zip(mz, rel_abundance))

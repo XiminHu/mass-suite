@@ -369,7 +369,7 @@ def integration_plot(mzml_scans, input_mz, error,
                      f_width=20, f_height=10):
 
     result_dict = peak_pick(mzml_scans, input_mz, error,
-                                    min_scan=5, peak_area_thres=0)
+                            min_scan=5, peak_area_thres=0)
 
     rt, ints = ms_chromatogram_list(mzml_scans, input_mz, error)
 
