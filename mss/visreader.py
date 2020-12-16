@@ -10,7 +10,7 @@ import pyisopach
 import plotly.offline as py
 from ipywidgets import interactive, HBox, VBox
 import pandas as pd
-from mssmain import peak_pick, ms_chromatogram_list
+from mss.mssmain import peak_pick, ms_chromatogram_list
 
 
 # TIC plot

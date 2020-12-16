@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 import os
-from mssmain import ms_chromatogram_list, batch_scans, peak_list
+from mss.mssmain import ms_chromatogram_list, batch_scans, peak_list
 
 
 def stack(d_batch):
