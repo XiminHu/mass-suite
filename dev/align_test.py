@@ -202,7 +202,7 @@ for i in range(len(batch_scan)):
     d_peak.append(d_result)
 
 shape=[]
-for i in range(1000):
+for i in range(100):
     d_align = mss_align(d_peak, export_name=None, name_list=name_list, RT_error=0.1, mz_error=0.015)
     shape.append(d_align.shape[0])
     print(i)
