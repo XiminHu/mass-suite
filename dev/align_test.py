@@ -1,8 +1,8 @@
 import sys
 # import mss
-sys.path.append('../mss/')
-import mssmain as mss
-import align
+sys.path.append('../')
+from mss import mssmain as msm
+from mss import align
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
@@ -192,13 +192,13 @@ def mss_align(d_batch, export_name, name_list, RT_error, mz_error):
 
 print('Reading files...')
 path = 'D:/UW/directproject/example_data/'
-batch_scan, name_list = mss.batch_scans(path, remove_noise=True, thres_noise=20000)
+batch_scan, name_list = msm.batch_scans(path, remove_noise=True, thres_noise=20000)
 print('Processing peak list...')
 d_peak = []
 for i in range(len(batch_scan)):
     print('Processing', str(int(i + 1)),
             'out of ', len(batch_scan), 'file')
-    d_result = mss.peak_list(batch_scan[i], enable_score=False)
+    d_result = msm.peak_list(batch_scan[i], enable_score=False)
     d_peak.append(d_result)
 
 shape=[]
