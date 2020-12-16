@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 import os
-from mss.mssmain import ms_chromatogram_list, batch_scans, peak_list
+from mssmain import ms_chromatogram_list, batch_scans, peak_list
 
 
 def stack(d_batch):
@@ -192,14 +192,14 @@ def mss_process(path, export_name, mz_error=0.01, RT_error=0.1,
                 peak_area_thres=1e4, min_scan=5, max_scan=50,
                 max_peak=5):
     print('Reading files...')
-    batch_scan, name_list = batch_scans(path, remove_noise=remove_noise,
+    batch_scan, name_list = mssmain.batch_scans(path, remove_noise=remove_noise,
                                         thres_noise=thres_noise)
     print('Processing peak list...')
     d_peak = []
     for i in range(len(batch_scan)):
         print('Processing', str(int(i + 1)),
               'out of ', len(batch_scan), 'file')
-        d_result = peak_list(batch_scan[i], err_ppm=err_ppm,
+        d_result = mssmain.peak_list(batch_scan[i], err_ppm=err_ppm,
                              enable_score=enable_score, mz_c_thres=mz_c_thres,
                              peak_base=peak_base,
                              peakutils_thres=peakutils_thres,

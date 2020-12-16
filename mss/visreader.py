@@ -10,7 +10,7 @@ import pyisopach
 import plotly.offline as py
 from ipywidgets import interactive, HBox, VBox
 import pandas as pd
-from mss.mssmain import peak_pick, ms_chromatogram_list
+from mssmain import peak_pick, ms_chromatogram_list
 
 
 # TIC plot
@@ -368,10 +368,10 @@ def ms_chromatogram(mzml_scans, input_value, error,
 def integration_plot(mzml_scans, input_mz, error,
                      f_width=20, f_height=10):
 
-    result_dict = peak_pick(mzml_scans, input_mz, error,
+    result_dict = mssmain.peak_pick(mzml_scans, input_mz, error,
                             min_scan=5, peak_area_thres=0)
 
-    rt, ints = ms_chromatogram_list(mzml_scans, input_mz, error)
+    rt, ints = mssmain.ms_chromatogram_list(mzml_scans, input_mz, error)
 
     plt.figure(figsize=(f_width, f_height))
     plt.plot(rt, ints)
@@ -401,7 +401,7 @@ def iso_plot(mzml_scan, input_mz, error, formula):
         idx = np.abs(np.asarray(lst) - K).argmin()
         return idx
 
-    select_intensity = ms_chromatogram_list(mzml_scan, input_mz, error)[1]
+    select_intensity = mssmain.ms_chromatogram_list(mzml_scan, input_mz, error)[1]
     scan = mzml_scan[np.argmax(select_intensity)]
 
     mz = scan.mz

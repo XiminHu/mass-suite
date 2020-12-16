@@ -2,8 +2,8 @@ import unittest
 import os
 import pandas as pd
 import numpy as np
-from mss import dm
 import mss
+from mss import dm
 import sklearn
 import example_data
 test_path = os.path.join(mss.__path__[0], 'tests')

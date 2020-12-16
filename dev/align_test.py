@@ -1,6 +1,6 @@
 import sys
 # import mss
-sys.path.append('../mss')
+sys.path.append('../mss/')
 import mssmain as mss
 import align
 import pandas as pd
@@ -205,8 +205,9 @@ shape=[]
 for i in range(1000):
     d_align = mss_align(d_peak, export_name=None, name_list=name_list, RT_error=0.1, mz_error=0.015)
     shape.append(d_align.shape[0])
+    print(i)
 
 with open('1000loop.shape', 'wb') as fp:
-    pickle.dump(shape, fp)
+	pickle.dump(shape, fp)
 
 print('Finished!')
