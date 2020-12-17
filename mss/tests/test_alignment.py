@@ -13,7 +13,8 @@ batchpath = data_path + '/example_data/'
 class test_alignment(unittest.TestCase):
     def test_stack(self):
         """Tests stack functionlity"""
-        test = align.mss_process(batchpath, None, thres_noise=20000,enable_score=False)
+        test = align.mss_process(batchpath, None, thres_noise=20000,
+        	                     enable_score=False)
         assert len(test) > 0, "no df read in the folder"
 #        assert len(b) > 0, "output size is wrong"
 #        assert type(b) == pd.core.frame.DataFrame, "output type is wrong"
