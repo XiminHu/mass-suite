@@ -227,8 +227,10 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
                 # print(index + scan_window)
 
         # Follow Agilent S/N document
+        width = rt[h_range] - rt[l_range]
         if len(peak_range) != 0:
             height = max(peak_range)
+            hw_ratio = round(height / width, 0)
             neighbour_blank = (intensity[
                 l_range - sn_detect: l_range] +
                 intensity[h_range: h_range +
@@ -238,9 +240,6 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
                 sn = round(height / noise, 3)
             elif noise == 0:
                 sn = 0
-
-        width = rt[h_range] - rt[l_range]
-        hw_ratio = round(height / width, 0)
 
         # Additional global parameters
         # 1/2 peak range

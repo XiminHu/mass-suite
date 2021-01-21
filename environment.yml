@@ -75,7 +75,7 @@ dependencies:
   - numpy=1.18.1
   - numpy-base=1.18.1
   - openssl=1.1.1g
-  - pandas=1.0.3
+  - pandas=1.2.0
   - pandoc=2.2.3.2
   - pandocfilters=1.4.2
   - parso=0.7.0
