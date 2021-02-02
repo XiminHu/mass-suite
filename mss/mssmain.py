@@ -127,9 +127,7 @@ def ms_chromatogram_list(mzml_scans, input_mz, error):
     retention_time = []
     intensity = []
     for scan in mzml_scans:
-        # print(i)
         retention_time.append(scan.scan_time[0])
-
         _, target_index = mz_locator(scan.mz, input_mz, error)
         if len(target_index) == 0:
             intensity.append(0)
@@ -190,8 +188,8 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
             h_range += 1
             if h_range >= len(intensity) - 1:
                 break
-            if intensity[h_range] < half_intensity:  # potentially record this
-                if h_range - index > 4:  # fit r2 score,
+            if intensity[h_range] < half_intensity:  
+                if h_range - index > 4:  
                     # https://stackoverflow.com/questions/55649356/
                     # how-can-i-detect-if-trend-is-increasing-or-
                     # decreasing-in-time-series as alternative
@@ -199,16 +197,15 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
                     y = intensity[h_range - 2: h_range + 1]
                     (_slope, _intercept, r_value,
                      _p_value, _std_err) = scipy.stats.linregress(x, y)
-                    # print(rt[h_range],r_value)
                     if abs(r_value) < 0.6:
                         break
-        # Dev part 2, low priority since general peak shapes
         while intensity[l_range] >= base_intensity:
             l_range -= 1
             if l_range <= 1:
                 break
-            if intensity[l_range] < half_intensity:
-                pass
+            # Place holder for half_intensity index
+            # if intensity[l_range] < half_intensity:
+            #     pass
 
         # Output a range for the peak list
         # If len(intensity) - h_range < 4:
@@ -275,6 +272,7 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
                     l_width = rt[index] - rt[l_range]
                     r_width = rt[h_range] - rt[index]
                     assym = r_width / l_width
+                    # define constant -- upper case
                     var = (w ** 2 / (1.764 * ((r_width / l_width)
                            ** 2) - 11.15 * (r_width / l_width) + 28))
                     x_peak = [w, t_r, l_width, r_width, assym,
@@ -293,7 +291,9 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
                      {index: [l_range, h_range,
                               integration_result, sn, score]}))
                 # Compare with previous item
+                # * get rid of list()
                 elif integration_result != list(result_dict.values())[-1][2]:
+                    # test python 3.6 and 3.7
                     s_window = abs(index - list(result_dict.keys())[-1])
                     if s_window > overlap_tol:
                         (result_dict.update(
@@ -366,6 +366,9 @@ def peak_list(mzml_scans, err_ppm=10, enable_score=True, mz_c_thres=5,
         rt.append(scan.scan_time[0])
 
     for mz in tqdm(mzlist):
+        # * force python garbage collection
+        # * python instrumentation run time
+        # * cython to rewrite
         try:
             peak_dict = peak_pick(mzml_scans, mz, err_ppm, enable_score,
                                   peak_thres=peak_base,
@@ -447,7 +450,7 @@ def batch_peak(batch_input, source_list, mz, error):
     return d_result
 
 
-# Read in formula database
+# Read in formula database **
 Formula_file = os.path.join(this_dir, '100-500.csv')
 cfg = pd.read_csv(Formula_file, index_col=0)
 
