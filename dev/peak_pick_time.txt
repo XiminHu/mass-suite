@@ -1,0 +1,176 @@
+Timer unit: 1e-07 s
+
+Total time: 2.01188 s
+File: profiler.py
+Function: peak_pick at line 22
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    22                                           @profile
+    23                                           def peak_pick(mzml_scans, input_mz, error, enable_score=False, peak_thres=0.01,
+    24                                                         peakutils_thres=0.02, min_d=1, rt_window=1.5,
+    25                                                         peak_area_thres=1e5, min_scan=5, max_scan=200, max_peak=5,
+    26                                                         overlap_tol=15, sn_detect=15):
+    27                                               '''
+    28                                               The function is used to detect peak for given m/z's chromatogram
+    29                                               error: in ppm
+    30                                               enable_score: option to enable the RF model
+    31                                               peak_thres: base peak tolerance
+    32                                               peakutils_thres: threshold from peakutils, may be repeated with peak_thres
+    33                                               min_d: peaktuils parameter
+    34                                               rt_window: window for integration only, didn't affect detection
+    35                                               peak_area_thres: peak area limitation
+    36                                               min_scan: min scan required to be detected as peak
+    37                                               max_scan: max scan limit to exclude noise
+    38                                               max_peak: max peak limit for selected precursor
+    39                                               overlap_tot: overlap scans for two peaks within the same precursor
+    40                                               sn_detect: scan numbers before/after the peak for sn calculation
+    41                                               '''
+    42                                           
+    43                                               # Important funciont, may need to be extracted out later
+    44                                               # Data output from the chromatogram_plot function
+    45                                           
+    46         1   16404967.0 16404967.0     81.5      rt, intensity = msm.ms_chromatogram_list(mzml_scans, input_mz, error)
+    47                                           
+    48                                               # Get rt_window corresponding to scan number
+    49         1         27.0     27.0      0.0      scan_window = int(
+    50         1         38.0     38.0      0.0          (rt_window / (rt[int(len(intensity) / 2)] -
+    51         1         29.0     29.0      0.0                        rt[int(len(intensity) / 2) - 1])))
+    52         1       1630.0   1630.0      0.0      rt_conversion_coef = np.diff(rt).mean()
+    53                                               # Get peak index
+    54         1         23.0     23.0      0.0      indexes = peakutils.indexes(intensity, thres=peakutils_thres,
+    55         1     997729.0 997729.0      5.0                                  min_dist=min_d)
+    56                                           
+    57         1         23.0     23.0      0.0      result_dict = {}
+    58                                           
+    59                                               # dev note: boundary detection refinement
+    60        12        278.0     23.2      0.0      for index in indexes:
+    61        11        149.0     13.5      0.0          h_range = index
+    62        11        146.0     13.3      0.0          l_range = index
+    63        11        225.0     20.5      0.0          base_intensity = peak_thres * intensity[index]
+    64        11        181.0     16.5      0.0          half_intensity = 0.5 * intensity[index]
+    65                                           
+    66                                                   # Get the higher and lower boundary
+    67       148       2328.0     15.7      0.0          while intensity[h_range] >= base_intensity:
+    68       146       2888.0     19.8      0.0              h_range += 1
+    69       146       2693.0     18.4      0.0              if h_range >= len(intensity) - 1:
+    70                                                           break
+    71       146       2117.0     14.5      0.0              if intensity[h_range] < half_intensity:  
+    72        66       1316.0     19.9      0.0                  if h_range - index > 4:  
+    73                                                               # https://stackoverflow.com/questions/55649356/
+    74                                                               # how-can-i-detect-if-trend-is-increasing-or-
+    75                                                               # decreasing-in-time-series as alternative
+    76        49      29720.0    606.5      0.1                      x = np.linspace(h_range - 2, h_range, 3)
+    77        49       1858.0     37.9      0.0                      y = intensity[h_range - 2: h_range + 1]
+    78                                                               (_slope, _intercept, r_value,
+    79        49    2579785.0  52648.7     12.8                       _p_value, _std_err) = scipy.stats.linregress(x, y)
+    80        49       1621.0     33.1      0.0                      if abs(r_value) < 0.6:
+    81         9        143.0     15.9      0.0                          break
+    82       863      15549.0     18.0      0.1          while intensity[l_range] >= base_intensity:
+    83       852      18072.0     21.2      0.1              l_range -= 1
+    84       852      17383.0     20.4      0.1              if l_range <= 1:
+    85                                                           break
+    86                                                       # Place holder for half_intensity index
+    87                                                       # if intensity[l_range] < half_intensity:
+    88                                                       #     pass
+    89                                           
+    90                                                   # Output a range for the peak list
+    91                                                   # If len(intensity) - h_range < 4:
+    92                                                   #     h_range = h_range + 3
+    93        11        270.0     24.5      0.0          peak_range = []
+    94        11        234.0     21.3      0.0          if h_range - l_range >= min_scan:
+    95        11        276.0     25.1      0.0              if rt[h_range] - rt[l_range] <= rt_window:
+    96         6        259.0     43.2      0.0                  peak_range = intensity[l_range:h_range]
+    97                                                       else:
+    98         5       1060.0    212.0      0.0                  if index - scan_window / 2 >= 1:
+    99         5        472.0     94.4      0.0                      l_range = int(index - scan_window / 2)
+   100         5        309.0     61.8      0.0                  if index + scan_window / 2 <= len(intensity) - 1:
+   101         5        216.0     43.2      0.0                      h_range = int(index + scan_window / 2)
+   102         5        181.0     36.2      0.0                  peak_range = intensity[l_range:h_range]
+   103                                                           # print(index + scan_window)
+   104                                           
+   105                                                   # Follow Agilent S/N document
+   106        11        178.0     16.2      0.0          width = rt[h_range] - rt[l_range]
+   107        11        179.0     16.3      0.0          if len(peak_range) != 0:
+   108        11        583.0     53.0      0.0              height = max(peak_range)
+   109        11        974.0     88.5      0.0              hw_ratio = round(height / width, 0)
+   110        11        149.0     13.5      0.0              neighbour_blank = (intensity[
+   111        11        230.0     20.9      0.0                  l_range - sn_detect: l_range] +
+   112        11        138.0     12.5      0.0                  intensity[h_range: h_range +
+   113        11        343.0     31.2      0.0                            sn_detect + 1])
+   114        11       8113.0    737.5      0.0              noise = np.std(neighbour_blank)
+   115        11        242.0     22.0      0.0              if noise != 0:
+   116        11       1218.0    110.7      0.0                  sn = round(height / noise, 3)
+   117                                                       elif noise == 0:
+   118                                                           sn = 0
+   119                                           
+   120                                                   # Additional global parameters
+   121                                                   # 1/2 peak range
+   122        11        181.0     16.5      0.0          h_loc = index
+   123        11        152.0     13.8      0.0          l_loc = index
+   124        92       1290.0     14.0      0.0          while intensity[h_loc] > half_intensity:
+   125        81       1472.0     18.2      0.0              h_loc += 1
+   126        81       1565.0     19.3      0.0              if h_loc >= len(intensity) - 1:
+   127                                                           break
+   128        67       1111.0     16.6      0.0          while intensity[l_loc] > half_intensity and l_loc > 0:
+   129        56       1143.0     20.4      0.0              l_loc -= 1
+   130                                           
+   131                                                   # Intergration based on the simps function
+   132        11        305.0     27.7      0.0          if len(peak_range) >= min_scan:
+   133        11      10970.0    997.3      0.1              integration_result = simps(peak_range)
+   134        11        236.0     21.5      0.0              if integration_result >= peak_area_thres:
+   135                                                           # https://doi.org/10.1016/j.chroma.2010.02.010
+   136        10        524.0     52.4      0.0                  background_area = (h_range - l_range) * height
+   137        10       1228.0    122.8      0.0                  ab_ratio = round(integration_result / background_area, 3)
+   138        10        166.0     16.6      0.0                  if enable_score is True:
+   139                                                               h_half = h_loc + \
+   140                                                                   (half_intensity - intensity[h_loc]) / \
+   141                                                                   (intensity[h_loc - 1] - intensity[h_loc])
+   142                                                               l_half = l_loc + \
+   143                                                                   (half_intensity - intensity[l_loc]) / \
+   144                                                                   (intensity[l_loc + 1] - intensity[l_loc])
+   145                                                               # when transfer back use rt[index] instead
+   146                                                               mb = (height - half_intensity) / \
+   147                                                                   ((h_half - index) * rt_conversion_coef)
+   148                                                               ma = (height - half_intensity) / \
+   149                                                                   ((index - l_half) * rt_conversion_coef)
+   150                                                               w = rt[h_range] - rt[l_range]
+   151                                                               t_r = (h_half - l_half) * rt_conversion_coef
+   152                                                               l_width = rt[index] - rt[l_range]
+   153                                                               r_width = rt[h_range] - rt[index]
+   154                                                               assym = r_width / l_width
+   155                                                               # define constant -- upper case
+   156                                                               var = (w ** 2 / (1.764 * ((r_width / l_width)
+   157                                                                      ** 2) - 11.15 * (r_width / l_width) + 28))
+   158                                                               x_peak = [w, t_r, l_width, r_width, assym,
+   159                                                                         integration_result, sn, hw_ratio, ab_ratio,
+   160                                                                         height, ma, mb, ma + mb, mb / ma, var]
+   161                                                               x_input = np.asarray(x_peak)
+   162                                                               # score = np.argmax(Pmodel.predict(x_input.reshape(1,-1)))
+   163                                                               # for tensorflow
+   164                                                               score = 1 # int(Pmodel.predict(x_input.reshape(1, -1)))
+   165        10        151.0     15.1      0.0                  elif enable_score is False:
+   166        10        142.0     14.2      0.0                      score = 1
+   167                                           
+   168                                                           # appending to result
+   169        10        200.0     20.0      0.0                  if len(result_dict) == 0:
+   170         1         13.0     13.0      0.0                      (result_dict.update(
+   171         1         13.0     13.0      0.0                       {index: [l_range, h_range,
+   172         1         25.0     25.0      0.0                                integration_result, sn, score]}))
+   173                                                           # Compare with previous item
+   174                                                           # * get rid of list()
+   175         9        302.0     33.6      0.0                  elif integration_result != list(result_dict.values())[-1][2]:
+   176                                                               # test python 3.6 and 3.7
+   177         8        284.0     35.5      0.0                      s_window = abs(index - list(result_dict.keys())[-1])
+   178         8        170.0     21.2      0.0                      if s_window > overlap_tol:
+   179         6        102.0     17.0      0.0                          (result_dict.update(
+   180         6         97.0     16.2      0.0                           {index: [l_range, h_range, integration_result,
+   181         6        171.0     28.5      0.0                                    sn, score]}))
+   182                                               # If still > max_peak then select top max_peak results
+   183         1         16.0     16.0      0.0      if len(result_dict) > max_peak:
+   184         1         16.0     16.0      0.0          result_dict = dict(sorted(result_dict.items(),
+   185         1        111.0    111.0      0.0                                    key=lambda x: x[1][2], reverse=True))
+   186         1         50.0     50.0      0.0          result_dict = dict(itertools.islice(result_dict.items(), max_peak))
+   187                                           
+   188         1         12.0     12.0      0.0      return result_dict
+

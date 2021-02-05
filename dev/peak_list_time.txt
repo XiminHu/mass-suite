@@ -1,0 +1,103 @@
+Timer unit: 1e-07 s
+
+Total time: 8.27286 s
+File: profiler_peaklist.py
+Function: peak_list at line 23
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    23                                           @profile
+    24                                           def peak_list(mzml_scans, err_ppm=10, enable_score=True, mz_c_thres=5,
+    25                                                         peak_base=0.005, peakutils_thres=0.02, min_d=1, rt_window=1.5,
+    26                                                         peak_area_thres=1e5, min_scan=5, max_scan=50,
+    27                                                         max_peak=5):
+    28                                               '''
+    29                                               Generate a dataframe by looping throughout the
+    30                                               whole mz space from a given mzml file
+    31                                               ref to peak_picking function
+    32                                               all the parameters included in peak_pick
+    33                                               mz_c_thres: defines how much mz need to be within a cluster for
+    34                                               a valid precursor in peak list detection
+    35                                               '''
+    36                                           
+    37                                               # Get m/z range -- updated 0416
+    38         1        554.0    554.0      0.0      print('Generating mz list...')
+    39                                           
+    40                                               # Function to filter out empty mz slots to speed up the process
+    41         1         17.0     17.0      0.0      def mz_gen(mzml_scans, err_ppm, mz_c_thres):
+    42                                                   # Function remake needed
+    43                                                   pmz = []
+    44                                                   for scan in mzml_scans:
+    45                                                       pmz.append(scan.mz)
+    46                                                   pmz = np.hstack(pmz).squeeze()
+    47                                           
+    48                                                   # According to msdial it should be mz + error * mz
+    49                                                   # To avoid mz slicing issue
+    50                                                   # Gap used to be 2*error*mz
+    51                                                   # https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4449330/#SD1
+    52                                                   def mz_list_gen(minmz, maxmz, error_ppm):
+    53                                                       error = error_ppm * 1e-6
+    54                                                       mz_list = [minmz]
+    55                                                       mz = minmz
+    56                                                       while mz <= maxmz:
+    57                                                           mz = mz + error * mz
+    58                                                           mz_list.append(mz)
+    59                                                       return mz_list
+    60                                           
+    61                                                   mz_list = mz_list_gen(pmz.min(), pmz.max(), err_ppm)
+    62                                           
+    63                                                   final_mz = []
+    64                                                   for m in mz_list:
+    65                                                       lm = m - err_ppm * 1e-6 * m
+    66                                                       hm = m + err_ppm * 1e-6 * m
+    67                                                       if len(pmz[(pmz <= hm) & (pmz >= lm)]) >= mz_c_thres:
+    68                                                           final_mz.append(m)
+    69                                           
+    70                                                   return final_mz
+    71                                           
+    72         1   29652444.0 29652444.0     35.8      mzlist = mz_gen(mzml_scans, err_ppm, mz_c_thres)
+    73         1        821.0    821.0      0.0      print('Finding peaks...')
+    74                                           
+    75         1         18.0     18.0      0.0      result_dict = {}
+    76         1         11.0     11.0      0.0      rt = []
+    77        21        255.0     12.1      0.0      for scan in mzml_scans:
+    78        20       7418.0    370.9      0.0          rt.append(scan.scan_time[0])
+    79                                           
+    80       720     163957.0    227.7      0.2      for mz in tqdm(mzlist):
+    81                                                   # * python instrumentation run time
+    82                                                   # * cython to rewrite
+    83       719       9004.0     12.5      0.0          try:
+    84       719      11804.0     16.4      0.0              peak_dict = msm.peak_pick(mzml_scans, mz, err_ppm, enable_score,
+    85       719       8772.0     12.2      0.0                                    peak_thres=peak_base,
+    86       719       9566.0     13.3      0.0                                    peakutils_thres=peakutils_thres,
+    87       719       8902.0     12.4      0.0                                    min_d=min_d, rt_window=rt_window,
+    88       719       8502.0     11.8      0.0                                    peak_area_thres=peak_area_thres,
+    89       719       8622.0     12.0      0.0                                    min_scan=min_scan, max_scan=max_scan,
+    90       719   52772316.0  73396.8     63.8                                    max_peak=max_peak)
+    91                                                   except Exception:  # Catch exception?
+    92                                                       peak_dict = {}
+    93                                           
+    94       719      23025.0     32.0      0.0          if len(peak_dict) != 0:
+    95       122       1858.0     15.2      0.0              if len(result_dict) == 0:
+    96         2         31.0     15.5      0.0                  for index in peak_dict:
+    97         1         13.0     13.0      0.0                      result_dict.update({'m/z': [mz],
+    98         1         12.0     12.0      0.0                                          'rt': [rt[index]],
+    99         1         14.0     14.0      0.0                                          'sn': [peak_dict[index][3]],
+   100         1         15.0     15.0      0.0                                          'score': [peak_dict[index][4]],
+   101         1         25.0     25.0      0.0                                          'peak area': [peak_dict[index][2]]})
+   102                                                       else:
+   103       259       4516.0     17.4      0.0                  for index in peak_dict:
+   104       138       2807.0     20.3      0.0                      result_dict['m/z'].append(mz)
+   105       138       2708.0     19.6      0.0                      result_dict['rt'].append(rt[index])
+   106       138       2758.0     20.0      0.0                      result_dict['sn'].append(peak_dict[index][3])
+   107       138       2055.0     14.9      0.0                      result_dict['score'].append(peak_dict[index][4])
+   108       138       2104.0     15.2      0.0                      result_dict['peak area'].append(peak_dict[index][2])
+   109                                               # print(result_dict)
+   110         1        761.0    761.0      0.0      print('Peak processing finished!')
+   111         1      14095.0  14095.0      0.0      d_result = pd.DataFrame(result_dict)
+   112         1       5358.0   5358.0      0.0      d_result['rt'] = round(d_result['rt'], 2)
+   113         1       3146.0   3146.0      0.0      d_result['m/z'] = round(d_result['m/z'], 4)
+   114         1        335.0    335.0      0.0      print('Dataframe created!')
+   115                                           
+   116         1         12.0     12.0      0.0      return d_result
+
