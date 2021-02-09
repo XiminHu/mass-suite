@@ -1,0 +1,49 @@
+Timer unit: 1e-06 s
+
+Total time: 0.000109 s
+File: profiler_mzlocator.py
+Function: mz_locator at line 22
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    22                                           @profile
+    23                                           def mz_locator(input_list, mz, error, all_than_close=True):
+    24                                               '''
+    25                                               Find specific mzs from given mz and error range out from a given mz array
+    26                                               input list: mz list
+    27                                               mz: input_mz that want to be found
+    28                                               error: error range is now changed to ppm level
+    29                                               all_than_close: False only select closest one, True will append all
+    30                                               '''
+    31         1          6.0      6.0      5.5      target_mz = []
+    32         1          1.0      1.0      0.9      target_index = []
+    33                                           
+    34                                               # ppm conversion
+    35         1          1.0      1.0      0.9      error = error * 1e-6
+    36                                           
+    37         1          1.0      1.0      0.9      lower_mz = mz - error * mz
+    38         1          1.0      1.0      0.9      higher_mz = mz + error * mz
+    39                                           
+    40        27         32.0      1.2     29.4      for i, mzs in enumerate(input_list):
+    41        26         22.0      0.8     20.2          if mzs < lower_mz:
+    42         2          2.0      1.0      1.8              continue
+    43        24         19.0      0.8     17.4          elif mzs >= lower_mz:
+    44        24         18.0      0.8     16.5              if mzs <= higher_mz:
+    45         1          1.0      1.0      0.9                  target_mz.append(mzs)
+    46         1          1.0      1.0      0.9                  target_index.append(i)
+    47                                           
+    48         1          0.0      0.0      0.0      if all_than_close is False:
+    49                                                   if len(target_mz) != 0:
+    50                                                       target_error = [abs(i - mz) for i in target_mz]
+    51                                                       minpos = target_error.index(min(target_error))
+    52                                                       t_mz = target_mz[minpos]
+    53                                                       t_i = target_index[minpos]
+    54                                                   else:
+    55                                                       t_mz = 0
+    56                                                       t_i = 'NA'
+    57         1          1.0      1.0      0.9      if all_than_close is True:
+    58         1          1.0      1.0      0.9          t_mz = target_mz
+    59         1          1.0      1.0      0.9          t_i = target_index
+    60                                           
+    61         1          1.0      1.0      0.9      return t_mz, t_i
+
