@@ -21,35 +21,27 @@ msm.noise_removal(scans, 2000)
 scans = scans[:200]
 
 @profile
-def mz_gen(mzml_scans, err_ppm, mz_c_thres):
-    # Function remake needed
-    pmz = []
+def ms_chromatogram_list(mzml_scans, input_mz, error):
+    '''
+    Generate a peak list for specific input_mz over
+    whole rt period from the mzml file
+    ***Most useful function!
+    '''
+
+    # Create empty list to store the data
+    retention_time = []
+    intensity = []
     for scan in mzml_scans:
-        pmz.append(scan.mz)
-    pmz = np.hstack(pmz).squeeze()
+        retention_time.append(scan.scan_time[0])
+        _, target_index = msm.mz_locator(scan.mz, input_mz, error)
+        if len(target_index) == 0:
+            intensity.append(0)
+        else:
+            # intensity.append(scan.i[target_index])
+            # CR -> if all_than_close=True
+            # Change from sum to max
+            intensity.append(max(scan.i[target_index]))
 
-    # According to msdial it should be mz + error * mz
-    # To avoid mz slicing issue
-    # Gap used to be 2*error*mz
-    # https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4449330/#SD1
-    def mz_list_gen(minmz, maxmz, error_ppm):
-        error = error_ppm * 1e-6
-        mz_list = [minmz]
-        mz = minmz
-        while mz <= maxmz:
-            mz = mz + error * mz
-            mz_list.append(mz)
-        return mz_list
+    return retention_time, intensity
 
-    mz_list = mz_list_gen(pmz.min(), pmz.max(), err_ppm)
-
-    final_mz = []
-    for m in mz_list:
-        lm = m - err_ppm * 1e-6 * m
-        hm = m + err_ppm * 1e-6 * m
-        if len(pmz[(pmz <= hm) & (pmz >= lm)]) >= mz_c_thres:
-            final_mz.append(m)
-
-    return final_mz
-
-mz_gen(scans,20,5)
+ms_chromatogram_list(scans,299.1765,500)
