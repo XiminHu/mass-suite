@@ -7,6 +7,7 @@ test_path = os.path.join(mss.__path__[0], 'tests')
 data_path = os.path.join(test_path, 'data')
 file = 'ex_1.mzML'
 file_path = os.path.join(data_path, file)
+test_scan_file = mssmain.get_scans(file_path)
 
 
 class test_mssmain(unittest.TestCase):
@@ -21,14 +22,14 @@ class test_mssmain(unittest.TestCase):
         return
 
     def test_noise_removal(self):
-        test_scan = mssmain.get_scans(file_path)
+        test_scan = test_scan_file
         mssmain.noise_removal(test_scan)
         assert sum(test_scan[0].i <= 1000) == 0,\
             "noise didn't properly removed"
         return
 
     def test_mzlocator(self):
-        test_scan = mssmain.get_scans(file_path)
+        test_scan = test_scan_file
         mzlist = mssmain.mz_locator(test_scan[0].mz, 117.113, 20)
         assert type(mzlist) == tuple, "output type is wrong"
         assert mzlist[0][0] - 117.113 <= 20 * 117.113,\
@@ -37,7 +38,7 @@ class test_mssmain(unittest.TestCase):
         return
 
     def test_peak_pick(self):  # More to add during later development
-        test_scan = mssmain.get_scans(file_path)
+        test_scan = test_scan_file
         test_dict = mssmain.peak_pick(test_scan, 299.146, 20)
         assert type(test_dict) == dict, "output type is wrong"
         assert len(test_dict.keys()) != 0, "didn't find the peak"
@@ -46,7 +47,7 @@ class test_mssmain(unittest.TestCase):
         return
 
     def test_peak_list(self):  # More to add during later development
-        test_scan = mssmain.get_scans(file_path)
+        test_scan = test_scan_file
         d_test = mssmain.peak_list(test_scan[:200], 20, enable_score=True)
         assert d_test.shape[1] == 5, "score column is off"
         assert d_test.score.dtype == 'int64', "wrong score type"
@@ -61,7 +62,7 @@ class test_mssmain(unittest.TestCase):
         return
 
     def test_formula_prediction(self):
-        test_scan = mssmain.get_scans(file_path)
+        test_scan = test_scan_file
         d_test = mssmain.formula_prediction(test_scan, 299.1765, 5, f_error=10)
         assert d_test.shape[1] == 4, "Wrong dataframe shape"
         return
