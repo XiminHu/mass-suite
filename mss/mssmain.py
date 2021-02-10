@@ -188,8 +188,8 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
             h_range += 1
             if h_range >= len(intensity) - 1:
                 break
-            if intensity[h_range] < half_intensity:  
-                if h_range - index > 4:  
+            if intensity[h_range] < half_intensity:
+                if h_range - index > 4:
                     # https://stackoverflow.com/questions/55649356/
                     # how-can-i-detect-if-trend-is-increasing-or-
                     # decreasing-in-time-series as alternative
