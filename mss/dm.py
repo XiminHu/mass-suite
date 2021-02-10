@@ -13,6 +13,9 @@ from sklearn.tree import DecisionTreeClassifier
 import scipy
 from sklearn.model_selection import train_test_split
 from sklearn import linear_model
+from kneed import KneeLocator
+from scipy.interpolate import interp1d
+from sklearn.neighbors import NearestNeighbors
 
 
 def mss_convert(d_input, rtmz_key, pa_index):
@@ -102,6 +105,22 @@ def data_prep(d_input, blank_keyword, simp_summary=False, svb_thres=10,
     elif simp_summary is False:
         d_result = d_sample.copy()
     return d_result
+
+
+def eps_assess(data, min_pts):
+    neigh = NearestNeighbors(n_neighbors=min_pts)
+    nbrs = neigh.fit(data)
+    distances, indices = nbrs.kneighbors(data)
+    distances = np.sort(distances, axis=0)
+    distances = distances[:, 1]
+    x = np.arange(1, len(distances)+1)
+    y = distances
+    plt.plot(x, y)
+    f = interp1d(x, y)
+    kn = KneeLocator(x, y, curve='convex', direction='increasing')
+    plt.scatter(kn.knee, f(kn.knee), color='red', marker='+', s=50)
+    print('eps selected', f(kn.knee))
+    return distances
 
 
 def ms_cluster(d_input, select_keyword, normalization='linear',
