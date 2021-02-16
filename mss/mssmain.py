@@ -352,8 +352,8 @@ def peak_list(mzml_scans, err_ppm=10, enable_score=True, mz_c_thres=5,
         for m in mz_list:
             lm = m - err_ppm * 1e-6 * m
             hm = m + err_ppm * 1e-6 * m
-            if len(pmz[(pmz <= hm) & (pmz >= lm)]) >= mz_c_thres:
-                final_mz.append(m)
+            if len([i for i in pmz if i <= hm and i >= lm]) >= mz_c_thres:
+                final_mz.append(m) 
 
         return final_mz
 
