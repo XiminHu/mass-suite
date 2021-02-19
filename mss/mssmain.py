@@ -76,6 +76,7 @@ def mz_locator(input_list, mz, error, all_than_close=True):
     error: error range is now changed to ppm level
     all_than_close: False only select closest one, True will append all
     '''
+    # np.asarray(input_list)
     target_mz = []
     target_index = []
 
@@ -85,11 +86,15 @@ def mz_locator(input_list, mz, error, all_than_close=True):
     lower_mz = mz - error * mz
     higher_mz = mz + error * mz
 
+    #cython/numpy array
+    # 1. keep as python, but change to tuple append rather than two seperate list append
+    # 2. cython --> faster python loop --> seperate function?
+    # Check list comprehension
+    # boolean index 
+    # https://towardsdatascience.com/speeding-up-python-code-fast-filtering-and-slow-loops-8e11a09a9c2f
+    # index = (mzs <= higher_mz) & (mzs >= lower_mz)
     for i, mzs in enumerate(input_list):
-        if mzs < lower_mz:
-            continue
-        elif mzs >= lower_mz:
-            if mzs <= higher_mz:
+        if mzs >= lower_mz and mzs <= higher_mz:
                 target_mz.append(mzs)
                 target_index.append(i)
 
@@ -188,8 +193,8 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
             h_range += 1
             if h_range >= len(intensity) - 1:
                 break
-            if intensity[h_range] < half_intensity:
-                if h_range - index > 4:
+            if intensity[h_range] < half_intensity:  
+                if h_range - index > 4:  
                     # https://stackoverflow.com/questions/55649356/
                     # how-can-i-detect-if-trend-is-increasing-or-
                     # decreasing-in-time-series as alternative
@@ -352,8 +357,13 @@ def peak_list(mzml_scans, err_ppm=10, enable_score=True, mz_c_thres=5,
         for m in mz_list:
             lm = m - err_ppm * 1e-6 * m
             hm = m + err_ppm * 1e-6 * m
-            if len([i for i in pmz if i <= hm and i >= lm]) >= mz_c_thres:
-                final_mz.append(m) 
+            # 1. bin_list.append((lm,hm))
+            # sort the list against the bin_list, passing only one time
+            # list comprehension
+            # [i for i in pmz if i <= hm and i >= lm]
+            # 2. cythonize
+            if len(pmz[(pmz <= hm) & (pmz >= lm)]) >= mz_c_thres:
+                final_mz.append(m)
 
         return final_mz
 
@@ -366,7 +376,6 @@ def peak_list(mzml_scans, err_ppm=10, enable_score=True, mz_c_thres=5,
         rt.append(scan.scan_time[0])
 
     for mz in tqdm(mzlist):
-        # * force python garbage collection
         # * python instrumentation run time
         # * cython to rewrite
         try:
