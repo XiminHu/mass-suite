@@ -20,43 +20,18 @@ scans = msm.get_scans(path, ms_all=False, ms_lv=1)
 msm.noise_removal(scans, 2000)
 
 @profile
-def mz_locator(input_list, mz, error, all_than_close=True):
-    '''
-    Find specific mzs from given mz and error range out from a given mz array
-    input list: mz list
-    mz: input_mz that want to be found
-    error: error range is now changed to ppm level
-    all_than_close: False only select closest one, True will append all
-    '''
-    target_mz = []
-    target_index = []
-
-    # ppm conversion
+def boolean_index(input_list, mz, error):
+    array = np.asarray(input_list)
     error = error * 1e-6
 
     lower_mz = mz - error * mz
     higher_mz = mz + error * mz
+    
 
-    for i, mzs in enumerate(input_list):
-        if mzs < lower_mz:
-            continue
-        elif mzs >= lower_mz:
-            if mzs <= higher_mz:
-                target_mz.append(mzs)
-                target_index.append(i)
+    index = (array >= lower_mz) & (array <= higher_mz)
 
-    if all_than_close is False:
-        if len(target_mz) != 0:
-            target_error = [abs(i - mz) for i in target_mz]
-            minpos = target_error.index(min(target_error))
-            t_mz = target_mz[minpos]
-            t_i = target_index[minpos]
-        else:
-            t_mz = 0
-            t_i = 'NA'
-    if all_than_close is True:
-        t_mz = target_mz
-        t_i = target_index
+    return array[index],np.where(index)[0]
 
-    return t_mz, t_i
-mz_locator(scans[1].mz,119.08,500)
+print('Boolean index:\t', end='')
+
+boolean_index(scans[1].mz,119.08,500)

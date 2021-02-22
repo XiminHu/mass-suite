@@ -1,0 +1,32 @@
+Timer unit: 1e-06 s
+
+Total time: 0.010358 s
+File: profiler_ms_chromatogram.py
+Function: ms_chromatogram_list at line 23
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    23                                           @profile
+    24                                           def ms_chromatogram_list(mzml_scans, input_mz, error):
+    25                                               '''
+    26                                               Generate a peak list for specific input_mz over
+    27                                               whole rt period from the mzml file
+    28                                               ***Most useful function!
+    29                                               '''
+    30                                           
+    31                                               # Create empty list to store the data
+    32         1         12.0     12.0      0.1      retention_time = []
+    33         1          1.0      1.0      0.0      intensity = []
+    34       201        194.0      1.0      1.9      for scan in mzml_scans:
+    35       200       7146.0     35.7     69.0          retention_time.append(scan.scan_time[0])
+    36       200       2514.0     12.6     24.3          _, target_index = msm.mz_locator(scan.mz, input_mz, error)
+    37       200        261.0      1.3      2.5          if len(target_index) == 0:
+    38       200        229.0      1.1      2.2              intensity.append(0)
+    39                                                   else:
+    40                                                       # intensity.append(scan.i[target_index])
+    41                                                       # CR -> if all_than_close=True
+    42                                                       # Change from sum to max
+    43                                                       intensity.append(max(scan.i[target_index]))
+    44                                           
+    45         1          1.0      1.0      0.0      return retention_time, intensity
+
