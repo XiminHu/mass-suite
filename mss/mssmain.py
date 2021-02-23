@@ -76,6 +76,7 @@ def mz_locator(input_list, mz, error):
     error: error range is now changed to ppm level
     all_than_close False only select closest one, True will append all
     '''
+    # also try np.fromiter()
     array = np.asarray(input_list)
     # ppm conversion
     error = error * 1e-6
@@ -106,6 +107,8 @@ def ms_chromatogram_list(mzml_scans, input_mz, error):
     # Create empty list to store the data
     retention_time = []
     intensity = []
+    # List comprehension?
+    #rt = [i.scan_time[0] for i in mzml_scans]
     for scan in mzml_scans:
         retention_time.append(scan.scan_time[0])
         _, target_index = mz_locator(scan.mz, input_mz, error)
