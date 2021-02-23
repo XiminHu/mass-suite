@@ -96,21 +96,15 @@ Model_file_t = os.path.join(this_dir, 'rfmodel_tuned.pkl')
 rf_model_t = pickle.load(open(Model_file_t, 'rb'))
 Pmodel = rf_model_t
 
-
 def ms_chromatogram_list(mzml_scans, input_mz, error):
     '''
     Generate a peak list for specific input_mz over
     whole rt period from the mzml file
     ***Most useful function!
     '''
-
-    # Create empty list to store the data
-    retention_time = []
     intensity = []
-    # List comprehension?
-    #rt = [i.scan_time[0] for i in mzml_scans]
+    retention_time = [i.scan_time[0] for i in mzml_scans]
     for scan in mzml_scans:
-        retention_time.append(scan.scan_time[0])
         _, target_index = mz_locator(scan.mz, input_mz, error)
         if len(target_index) == 0:
             intensity.append(0)

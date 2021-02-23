@@ -27,12 +27,9 @@ def ms_chromatogram_list(mzml_scans, input_mz, error):
     whole rt period from the mzml file
     ***Most useful function!
     '''
-
-    # Create empty list to store the data
-    retention_time = []
     intensity = []
+    retention_time = [i.scan_time[0] for i in mzml_scans]
     for scan in mzml_scans:
-        retention_time.append(scan.scan_time[0])
         _, target_index = msm.mz_locator(scan.mz, input_mz, error)
         if len(target_index) == 0:
             intensity.append(0)
