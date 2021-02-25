@@ -22,7 +22,7 @@ import itertools
 # import h5py
 
 
-def get_scans(path, ms_all=False, ms_lv=1):
+def get_scans(path, ms_all:bool=False, ms_lv=1):
     '''
     The function is used to reorganize the pymzml reading
     into a list that will have better access
@@ -32,16 +32,12 @@ def get_scans(path, ms_all=False, ms_lv=1):
     '''
 
     # Read path using pymzml
-    run = pymzml.run.Reader(path)
+    mzrun = pymzml.run.Reader(path)
 
-    scans = []
     if ms_all is False:
-        for scan in run:
-            if scan.ms_level == ms_lv:
-                scans.append(scan)
+        scans = [scan for scan in mzrun if scan.ms_level == ms_lv]
     elif ms_all is True:
-        for scan in run:
-            scans.append(scan)
+        scans = [scan for scan in mzrun]
 
     return scans
 
@@ -100,7 +96,6 @@ def ms_chromatogram_list(mzml_scans, input_mz, error):
     ***Most useful function!
     '''
     intensity = []
-    retention_time = [i.scan_time[0] for i in mzml_scans]
     for scan in mzml_scans:
         _, target_index = mz_locator(scan.mz, input_mz, error)
         if len(target_index) == 0:
@@ -111,13 +106,13 @@ def ms_chromatogram_list(mzml_scans, input_mz, error):
             # Change from sum to max
             intensity.append(max(scan.i[target_index]))
 
-    return retention_time, intensity
+    return intensity
 
 
 def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
               peakutils_thres=0.02, min_d=1, rt_window=1.5,
               peak_area_thres=1e5, min_scan=5, max_scan=200, max_peak=5,
-              overlap_tol=15, sn_detect=15):
+              overlap_tol=15, sn_detect=15, rt=None):
     '''
     The function is used to detect peak for given m/z's chromatogram
     error: in ppm
@@ -133,7 +128,9 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
     overlap_tot: overlap scans for two peaks within the same precursor
     sn_detect: scan numbers before/after the peak for sn calculation
     '''
-    rt, intensity = ms_chromatogram_list(mzml_scans, input_mz, error)
+    if not rt:
+        rt = [i.scan_time[0] for i in mzml_scans]
+    intensity = ms_chromatogram_list(mzml_scans, input_mz, error)
 
     # Get rt_window corresponding to scan number
     scan_window = int(
@@ -323,9 +320,7 @@ def peak_list(mzml_scans, err_ppm=10, enable_score=True, mz_c_thres=5,
     print('Finding peaks...')
 
     result_dict = {}
-    rt = []
-    for scan in mzml_scans:
-        rt.append(scan.scan_time[0])
+    rt = [i.scan_time[0] for i in mzml_scans]
 
     for mz in tqdm(mzlist):
         # * python instrumentation run time
@@ -337,7 +332,7 @@ def peak_list(mzml_scans, err_ppm=10, enable_score=True, mz_c_thres=5,
                                   min_d=min_d, rt_window=rt_window,
                                   peak_area_thres=peak_area_thres,
                                   min_scan=min_scan, max_scan=max_scan,
-                                  max_peak=max_peak)
+                                  max_peak=max_peak, rt = rt)
         except Exception:  # Catch exception?
             peak_dict = {}
 
