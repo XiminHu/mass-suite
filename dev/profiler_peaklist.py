@@ -37,39 +37,7 @@ def peak_list(mzml_scans, err_ppm=10, enable_score=True, mz_c_thres=5,
     # Get m/z range -- updated 0416
     print('Generating mz list...')
 
-    # Function to filter out empty mz slots to speed up the process
-    def mz_gen(mzml_scans, err_ppm, mz_c_thres):
-        # Function remake needed
-        pmz = []
-        for scan in mzml_scans:
-            pmz.append(scan.mz)
-        pmz = np.hstack(pmz).squeeze()
-
-        # According to msdial it should be mz + error * mz
-        # To avoid mz slicing issue
-        # Gap used to be 2*error*mz
-        # https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4449330/#SD1
-        def mz_list_gen(minmz, maxmz, error_ppm):
-            error = error_ppm * 1e-6
-            mz_list = [minmz]
-            mz = minmz
-            while mz <= maxmz:
-                mz = mz + error * mz
-                mz_list.append(mz)
-            return mz_list
-
-        mz_list = mz_list_gen(pmz.min(), pmz.max(), err_ppm)
-
-        final_mz = []
-        for m in mz_list:
-            lm = m - err_ppm * 1e-6 * m
-            hm = m + err_ppm * 1e-6 * m
-            if len(pmz[(pmz <= hm) & (pmz >= lm)]) >= mz_c_thres:
-                final_mz.append(m)
-
-        return final_mz
-
-    mzlist = mz_gen(mzml_scans, err_ppm, mz_c_thres)
+    mzlist = msm.mz_gen(mzml_scans, err_ppm, mz_c_thres)
     print('Finding peaks...')
 
     result_dict = {}
@@ -115,4 +83,4 @@ def peak_list(mzml_scans, err_ppm=10, enable_score=True, mz_c_thres=5,
 
     return d_result
 
-peak_list(scans[:20], err_ppm=10,enable_score=False)
+peak_list(scans[:500], err_ppm=10,enable_score=False)

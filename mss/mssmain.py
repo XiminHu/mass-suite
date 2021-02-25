@@ -68,7 +68,7 @@ def noise_removal(mzml_scans, int_thres=1000):
 
 # updated to all_than_close, when false only select closest one, when true
 # append all, use as a backdoor for now if closest algorithm messed up
-def mz_locator(input_list, mz, error):
+def mz_locator(array, mz, error):
     '''
     Find specific mzs from given mz and error range out from a given mz array
     input list: mz list
@@ -76,14 +76,11 @@ def mz_locator(input_list, mz, error):
     error: error range is now changed to ppm level
     all_than_close False only select closest one, True will append all
     '''
-    # also try np.fromiter()
-    array = np.asarray(input_list)
     # ppm conversion
     error = error * 1e-6
 
     lower_mz = mz - error * mz
     higher_mz = mz + error * mz
-    
 
     index = (array >= lower_mz) & (array <= higher_mz)
 
@@ -136,10 +133,6 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
     overlap_tot: overlap scans for two peaks within the same precursor
     sn_detect: scan numbers before/after the peak for sn calculation
     '''
-
-    # Important funciont, may need to be extracted out later
-    # Data output from the chromatogram_plot function
-
     rt, intensity = ms_chromatogram_list(mzml_scans, input_mz, error)
 
     # Get rt_window corresponding to scan number
@@ -285,7 +278,31 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
     return result_dict
 
 
-# Code review
+# Function to filter out empty mz slots to speed up the process
+def mz_gen(mzml_scans, err_ppm, mz_c_thres):
+    # Function remake needed
+    pmz = [scan.mz for scan in mzml_scans]
+    pmz = np.hstack(pmz).squeeze()
+
+    # According to msdial it should be mz + error * mz
+    # https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4449330/#SD1
+    err_base = 1 + err_ppm * 1e-6
+    bin_count = int(np.log(pmz.max() / pmz.min()) 
+                    / np.log(1 + 1e-6 * 10) + 1)
+    mz_list = np.logspace(0, bin_count - 1,
+                          bin_count, base = err_base) * pmz.min()
+
+    digitized = np.digitize(pmz, mz_list)
+    unique, counts = np.unique(digitized, return_counts=True)
+    counts = counts[1:] + counts[:-1]
+    unique = unique[:-1]
+    index = list({key:value for (key,value) 
+               in dict(zip(unique,counts)).items() 
+               if value >= mz_c_thres}.keys())
+
+    return [mz_list[i] for i in index]
+
+
 def peak_list(mzml_scans, err_ppm=10, enable_score=True, mz_c_thres=5,
               peak_base=0.005, peakutils_thres=0.02, min_d=1, rt_window=1.5,
               peak_area_thres=1e5, min_scan=5, max_scan=50,
@@ -301,43 +318,6 @@ def peak_list(mzml_scans, err_ppm=10, enable_score=True, mz_c_thres=5,
 
     # Get m/z range -- updated 0416
     print('Generating mz list...')
-
-    # Function to filter out empty mz slots to speed up the process
-    def mz_gen(mzml_scans, err_ppm, mz_c_thres):
-        # Function remake needed
-        pmz = []
-        for scan in mzml_scans:
-            pmz.append(scan.mz)
-        pmz = np.hstack(pmz).squeeze()
-
-        # According to msdial it should be mz + error * mz
-        # To avoid mz slicing issue
-        # Gap used to be 2*error*mz
-        # https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4449330/#SD1
-        def mz_list_gen(minmz, maxmz, error_ppm):
-            error = error_ppm * 1e-6
-            mz_list = [minmz]
-            mz = minmz
-            while mz <= maxmz:
-                mz = mz + error * mz
-                mz_list.append(mz)
-            return mz_list
-
-        mz_list = mz_list_gen(pmz.min(), pmz.max(), err_ppm)
-
-        final_mz = []
-        for m in mz_list:
-            lm = m - err_ppm * 1e-6 * m
-            hm = m + err_ppm * 1e-6 * m
-            # 1. bin_list.append((lm,hm))
-            # sort the list against the bin_list, passing only one time
-            # list comprehension
-            # [i for i in pmz if i <= hm and i >= lm]
-            # 2. cythonize
-            if len(pmz[(pmz <= hm) & (pmz >= lm)]) >= mz_c_thres:
-                final_mz.append(m)
-
-        return final_mz
 
     mzlist = mz_gen(mzml_scans, err_ppm, mz_c_thres)
     print('Finding peaks...')

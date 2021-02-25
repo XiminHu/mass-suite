@@ -20,7 +20,7 @@ scans = msm.get_scans(path, ms_all=False, ms_lv=1)
 msm.noise_removal(scans, 2000)
 
 @profile
-def peak_pick(mzml_scans, input_mz, error, enable_score=False, peak_thres=0.01,
+def peak_pick(mzml_scans, input_mz, error, enable_score=True, peak_thres=0.01,
               peakutils_thres=0.02, min_d=1, rt_window=1.5,
               peak_area_thres=1e5, min_scan=5, max_scan=200, max_peak=5,
               overlap_tol=15, sn_detect=15):
@@ -39,10 +39,6 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=False, peak_thres=0.01,
     overlap_tot: overlap scans for two peaks within the same precursor
     sn_detect: scan numbers before/after the peak for sn calculation
     '''
-
-    # Important funciont, may need to be extracted out later
-    # Data output from the chromatogram_plot function
-
     rt, intensity = msm.ms_chromatogram_list(mzml_scans, input_mz, error)
 
     # Get rt_window corresponding to scan number
@@ -161,7 +157,7 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=False, peak_thres=0.01,
                     x_input = np.asarray(x_peak)
                     # score = np.argmax(Pmodel.predict(x_input.reshape(1,-1)))
                     # for tensorflow
-                    score = 1 # int(Pmodel.predict(x_input.reshape(1, -1)))
+                    score = 1
                 elif enable_score is False:
                     score = 1
 
@@ -186,4 +182,5 @@ def peak_pick(mzml_scans, input_mz, error, enable_score=False, peak_thres=0.01,
         result_dict = dict(itertools.islice(result_dict.items(), max_peak))
 
     return result_dict
-peak_pick(scans,299.1765,500)
+
+peak_pick(scans,299.1765,500,enable_score=False)
