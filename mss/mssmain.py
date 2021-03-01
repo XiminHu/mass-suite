@@ -19,7 +19,12 @@ import itertools
 
 # Modeling modules
 # from tensorflow import keras
-# import h5py
+
+# *reading external data
+this_dir, this_filename = os.path.split(__file__)
+Model_file_t = os.path.join(this_dir, 'rfmodel_tuned.pkl')
+rf_model_t = pickle.load(open(Model_file_t, 'rb'))
+Pmodel = rf_model_t
 
 
 def get_scans(path, ms_all:bool=False, ms_lv=1):
@@ -83,12 +88,6 @@ def mz_locator(array, mz, error):
     return array[index], np.where(index)[0]
 
 
-# *reading external data
-this_dir, this_filename = os.path.split(__file__)
-Model_file_t = os.path.join(this_dir, 'rfmodel_tuned.pkl')
-rf_model_t = pickle.load(open(Model_file_t, 'rb'))
-Pmodel = rf_model_t
-
 def ms_chromatogram_list(mzml_scans, input_mz, error):
     '''
     Generate a peak list for specific input_mz over
@@ -98,12 +97,9 @@ def ms_chromatogram_list(mzml_scans, input_mz, error):
     intensity = []
     for scan in mzml_scans:
         _, target_index = mz_locator(scan.mz, input_mz, error)
-        if len(target_index) == 0:
+        if target_index.size == 0:
             intensity.append(0)
         else:
-            # intensity.append(scan.i[target_index])
-            # CR -> if all_than_close=True
-            # Change from sum to max
             intensity.append(max(scan.i[target_index]))
 
     return intensity
