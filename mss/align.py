@@ -33,7 +33,7 @@ def mss_align(d_batch, export_name, name_list, RT_error, mz_error):
     np.warnings.filterwarnings('ignore')  # ignore warning from sn inf value
     tot_samp = stack(d_batch)
     alignment_df = tot_samp.iloc[:1, :4].copy()
-    # alignment_df[['s_rt', 's_mz', 's_sn', 's_scr']] = [0.0, 0.0, 0.0, 0.0]
+    # alignment_df[['s_rt', 's_mz', 's_sn', 's_scr']] = 0.0
     alignment_df['s_rt'] = 0.0
     alignment_df['s_mz'] = 0.0
     alignment_df['s_sn'] = 0.0

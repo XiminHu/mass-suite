@@ -61,14 +61,12 @@ def noise_removal(mzml_scans, int_thres=1000):
             drop_index = np.argwhere(scan.i <= int_thres)
             scan.i = np.delete(scan.i, drop_index)
             scan.mz = np.delete(scan.mz, drop_index)
-        elif scan.ms_level != 1:
+        else:
             continue
 
     return
 
 
-# updated to all_than_close, when false only select closest one, when true
-# append all, use as a backdoor for now if closest algorithm messed up
 def mz_locator(array, mz, error):
     '''
     Find specific mzs from given mz and error range out from a given mz array
