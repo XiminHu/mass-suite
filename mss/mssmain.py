@@ -23,8 +23,12 @@ import itertools
 # *reading external data
 this_dir, this_filename = os.path.split(__file__)
 Model_file_t = os.path.join(this_dir, 'rfmodel_tuned.pkl')
+#Switch pickle? ONNX?
 rf_model_t = pickle.load(open(Model_file_t, 'rb'))
 Pmodel = rf_model_t
+# Read in formula database **
+Formula_file = os.path.join(this_dir, '100-500.csv')
+cfg = pd.read_csv(Formula_file, index_col=0)
 
 
 def get_scans(path, ms_all:bool=False, ms_lv=1):
@@ -35,7 +39,6 @@ def get_scans(path, ms_all:bool=False, ms_lv=1):
     ms_all: if you want all the ms_level be check
     ms_lv: ms_level you want to export
     '''
-
     # Read path using pymzml
     mzrun = pymzml.run.Reader(path)
 
@@ -317,8 +320,6 @@ def peak_list(mzml_scans, err_ppm=10, enable_score=True, mz_c_thres=5,
     rt = [i.scan_time[0] for i in mzml_scans]
 
     for mz in tqdm(mzlist):
-        # * python instrumentation run time
-        # * cython to rewrite
         try:
             peak_dict = peak_pick(mzml_scans, mz, err_ppm, enable_score,
                                   peak_thres=peak_base,
@@ -398,11 +399,6 @@ def batch_peak(batch_input, source_list, mz, error):
     d_result = pd.DataFrame(result_dict)
 
     return d_result
-
-
-# Read in formula database **
-Formula_file = os.path.join(this_dir, '100-500.csv')
-cfg = pd.read_csv(Formula_file, index_col=0)
 
 
 def formula_calc(mz, composition, error=5, mode='pos'):
