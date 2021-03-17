@@ -16,6 +16,8 @@ import re
 import pyisopach
 from scipy import special
 import itertools
+import urllib
+import json
 
 # Modeling modules
 # from tensorflow import keras
@@ -401,47 +403,44 @@ def batch_peak(batch_input, source_list, mz, error):
     return d_result
 
 
-def formula_calc(mz, composition, error=5, mode='pos'):
+def mf_calculator(mass, mass_error = 10,
+                  mfRange='C0-100H0-200N0-20O0-20P0-50',
+                  maxresults = 20,
+                  integerUnsaturation = False):
+    chemcalcURL = 'https://www.chemcalc.org/chemcalc/em'
+    massRange = mass * mass_error * 1e-6
+    params = {
+        'mfRange': mfRange,
+        'monoisotopicMass': mass,
+        'massRange': massRange,
+        'integerUnsaturation': integerUnsaturation
+    }
+
+    f = urllib.parse.urlencode(params)
+    f = f.encode('utf-8')
+    response = urllib.request.urlopen(chemcalcURL, f)
+
+    jsondata = response.read()
+    data = json.loads(jsondata)
+    dataframe = pd.DataFrame(data['results'])
+    dataframe.drop(columns='info', inplace=True)
+    dataframe.columns = ['Exact Mass', 'Formula',
+                         'Unsat', 'Mass error (Da)', 'Mass error (ppm)']
+    dataframe = dataframe[:maxresults].copy()
+    return dataframe
+
+
+def formula_prediction(mzml_scan, input_mz, error=10, mfRange='C0-100H0-200N0-20O0-20P0-50',
+                       relintensity_thres=1):
     '''
-    Now only support 100-500 mz
-    '''
-    e_weight = 0.0005485799
-    if mode == 'pos':
-        mz = mz + e_weight
-    elif mode == 'neg':
-        mz = mz - e_weight
-
-    low_mz = mz - mz * error * 1e-6
-    high_mz = mz + mz * error * 1e-6
-
-    hit = cfg[(cfg['Mass'] >= low_mz) & (cfg['Mass'] <= high_mz)].copy()
-    hit['error in Da'] = mz - hit['Mass']
-    hit['error in ppm'] = hit['error in Da'] / mz * 1e6
-
-    hit = hit.iloc[hit['error in ppm'].abs().argsort()]
-
-    for i in hit.index:
-        f_reg = re.findall(r'([A-Z][a-z]*)', i)
-        ip_reg = re.findall(r'([A-Z][a-z]*)', composition)
-        if len([i for i in f_reg if i not in ip_reg]) > 0:
-            hit.drop(i, inplace=True)
-
-    return hit
-
-
-def formula_prediction(mzml_scan, input_mz, error, composition='CHON',
-                       f_error=5, mode='pos', relintensity_thres=1):
-    '''
-    Interactive spectrum plot with nearest retention time from the given scan
-    mzml_scans: mzfile
-    time: selected time for the scan
+    Dot product?
     '''
 
     def closest(lst, K):
         idx = np.abs(np.asarray(lst) - K).argmin()
         return idx
 
-    intensity_max = ms_chromatogram_list(mzml_scan, input_mz, error)[1]
+    intensity_max = ms_chromatogram_list(mzml_scan, input_mz, error)
     scan = mzml_scan[np.argmax(intensity_max)]
 
     mz = scan.mz
@@ -453,9 +452,8 @@ def formula_prediction(mzml_scan, input_mz, error, composition='CHON',
 
     rel_abundance = [i / precursor_ints * 100 for i in inten]
 
-    prediction_table = formula_calc(
-        precursor_mz, composition,
-        error=f_error, mode='pos')
+    prediction_table = mf_calculator(precursor_mz, error, mfRange)
+    prediction_table.set_index('Formula', inplace=True)
 
     # Find closest pair
     measured_spec = list(zip(mz, rel_abundance))
@@ -517,5 +515,6 @@ def formula_prediction(mzml_scan, input_mz, error, composition='CHON',
         prediction_table.loc[formula, 'score'] = np.mean(score) * 100
 
     prediction_table.sort_values(by=['score'], inplace=True, ascending=False)
+    prediction_table.insert(0,'Input Mass', precursor_mz)
 
     return prediction_table

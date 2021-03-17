@@ -401,7 +401,7 @@ def iso_plot(mzml_scan, input_mz, error, formula):
         idx = np.abs(np.asarray(lst) - K).argmin()
         return idx
 
-    select_intensity = ms_chromatogram_list(mzml_scan, input_mz, error)[1]
+    select_intensity = ms_chromatogram_list(mzml_scan, input_mz, error)
     scan = mzml_scan[np.argmax(select_intensity)]
 
     mz = scan.mz
