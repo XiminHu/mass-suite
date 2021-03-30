@@ -518,13 +518,3 @@ def formula_prediction(mzml_scan, input_mz, error=10, mfRange='C0-100H0-200N0-20
     prediction_table.insert(0,'Input Mass', precursor_mz)
 
     return prediction_table
-
-
-def triplicate_mean(dataframe):
-    result = list(dict.fromkeys([i[:-2] for i in dataframe.columns]))
-    mean_list = []
-    for i in result:
-        mean_list.append(list(dataframe[dataframe.columns[dataframe.columns.str.contains(i)]].mean(1)))
-    df_m = pd.DataFrame(mean_list).T
-    df_m.columns = result
-    return df_m

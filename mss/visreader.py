@@ -346,8 +346,9 @@ def integration_plot(mzml_scans, input_mz, error,
 
     result_dict = peak_pick(mzml_scans, input_mz, error,
                             min_scan=5, peak_area_thres=0)
-
-    rt, ints = ms_chromatogram_list(mzml_scans, input_mz, error)
+    
+    rt = [i.scan_time[0] for i in mzml_scans]
+    ints = ms_chromatogram_list(mzml_scans, input_mz, error)
 
     plt.figure(figsize=(f_width, f_height))
     plt.plot(rt, ints)

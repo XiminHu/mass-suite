@@ -109,6 +109,16 @@ def data_prep(d_input, blank_keyword, simp_summary=False, svb_thres=10,
     return d_result
 
 
+def triplicate_mean(dataframe):
+    result = list(dict.fromkeys([i[:-2] for i in dataframe.columns]))
+    mean_list = []
+    for i in result:
+        mean_list.append(list(dataframe[dataframe.columns[dataframe.columns.str.contains(i)]].mean(1)))
+    df_m = pd.DataFrame(mean_list).T
+    df_m.columns = result
+    return df_m
+
+
 def eps_assess(data, min_pts):
     neigh = NearestNeighbors(n_neighbors=min_pts)
     nbrs = neigh.fit(data)
@@ -217,15 +227,7 @@ def ms_cluster(d_input, select_keyword, normalization='linear',
         d_label.insert(4, "label", optics.labels_.tolist())
     else:
         pass
-    # Post filter -- filter out features that present in other sources
-    # but not SR520 -- keep it open for now
-    # If activate add one more variable:source_keyword
-#     col_source = []
-#     for key in source_keyword:
-#         col_app = [col for col in d_thres.columns if key in col]
-#         col_source += col_app
-#     col_rest = [col for col in d_label.columns if col not in source][5:]
-#     d_label[col_app].max(1) / d_label[col_rest].max(1)
+
     return d_label
 
 
@@ -468,7 +470,7 @@ def feature_model(d_input, cluster_algorithm=False, test_frac=0.5,
     d_transpose = d_input.copy()  # avoid pandas warning
     if cluster_algorithm is True:
         # cluster separation
-        cluster_index = d_transpose.iloc[-1][1:]
+        cluster_index = d_transpose.iloc[-1][1:].copy()
         # d_concat_model = d_transpose.drop([d_transpose.index[-1]])
         # drop the index row
         xtrain, xtest, ytrain, ytest = (train_test_split(
@@ -499,7 +501,7 @@ def feature_model(d_input, cluster_algorithm=False, test_frac=0.5,
             list_clusterDF2.append(d_cm_label2)
     else:
         # all features used for modelling
-        cluster_index = d_transpose.iloc[-1]
+        cluster_index = d_transpose.iloc[-1].copy()
         # d_concat_model = d_transpose.drop([d_transpose.index[-1]])
         xtrain, xtest, ytrain, ytest = (train_test_split(
                                         d_transpose[d_transpose.columns[1:]],
@@ -737,4 +739,4 @@ def PCA_report(dataframe, n_components=5, figsize=(5,5)):
 
     plt.show()
     
-    return
+    return finalDf
