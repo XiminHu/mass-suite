@@ -16,6 +16,8 @@ from sklearn import linear_model
 from kneed import KneeLocator
 from scipy.interpolate import interp1d
 from sklearn.neighbors import NearestNeighbors
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
 
 
 def mss_convert(d_input, rtmz_key, pa_index):
@@ -692,3 +694,47 @@ def cluster_pred(model_list, d_merge, col_name, selected_cluster,
         pred = np.mean(pred_list)
         # ci = mean_confidence_interval(pred_list, confidence=confidence)
     return pred
+
+
+def PCA_report(dataframe, n_components=5, figsize=(5,5)):
+    df_p = dataframe.copy()
+    x = df_p.values
+    # Standardizing the features
+    x = StandardScaler().fit_transform(x)
+    pca = PCA(n_components=n_components)
+    principalComponents = pca.fit_transform(x.T) #X : array-like, shape (n_samples, n_features)
+
+    # Plotting the Cumulative Sum of the Explained Variance, use explained variance to choose number of principle componenets
+    # you may choose number of componenets that explained > 99% variance
+    plt.figure()
+    plt.plot(np.cumsum(pca.explained_variance_ratio_))
+    plt.xlabel('Number of Components')
+    plt.ylabel('Variance (%)') #for each component
+    plt.title('Pulsar Dataset Explained Variance')
+    plt.show()
+    print('explained ratio:', pca.explained_variance_ratio_)
+    pca = PCA(n_components=2)
+    principalComponents = pca.fit_transform(x.T)
+    principalDf = pd.DataFrame(data = principalComponents
+                 , columns = ['principal component 1', 'principal component 2'])
+    principalDf.head()
+    plt.style.use('default')
+    finalDf = principalDf
+    finalDf['label'] = list(df_p.columns)
+    principle_1 = finalDf.loc[:,'principal component 1']
+    principle_2 = finalDf.loc[:,'principal component 2']
+    n = list(df_p.columns)
+
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.scatter(principle_2, principle_1,s=50,marker ='+')
+    plt.xlabel('PC2')
+    plt.ylabel('PC1')
+    plt.title('Principle Component Analysis Result')
+
+
+    for i, txt in enumerate(n):
+        ax.annotate(txt, (principle_2[i], principle_1[i]),rotation=15)
+
+    plt.show()
+    
+    return

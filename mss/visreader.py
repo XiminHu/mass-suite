@@ -197,47 +197,23 @@ def frag_plot(mzml_scans, precursor, error=20, scan_index=0,
     return
 
 
-def mz_locator(input_list, mz, error, select_app=True):
-    # updated to select_app, when false only select closest one,
-    # when true append all, use as a backdoor
-    # for now if closest algorithm messed up
+def mz_locator(array, mz, error):
     '''
     Find specific mzs from given mz and error range out from a given mz array
     input list: mz list
     mz: input_mz that want to be found
     error: error range is now changed to ppm level
+    all_than_close False only select closest one, True will append all
     '''
-    target_mz = []
-    target_index = []
-
     # ppm conversion
     error = error * 1e-6
 
     lower_mz = mz - error * mz
     higher_mz = mz + error * mz
 
-    for i, mzs in enumerate(input_list):
-        if mzs < lower_mz:
-            continue
-        elif mzs >= lower_mz:
-            if mzs <= higher_mz:
-                target_mz.append(mzs)
-                target_index.append(i)
+    index = (array >= lower_mz) & (array <= higher_mz)
 
-    if select_app is False:
-        if len(target_mz) != 0:
-            target_error = [abs(i - mz) for i in target_mz]
-            minpos = target_error.index(min(target_error))
-            t_mz = target_mz[minpos]
-            t_i = target_index[minpos]
-        else:
-            t_mz = 0
-            t_i = 'NA'
-    if select_app is True:
-        t_mz = target_mz
-        t_i = target_index
-
-    return t_mz, t_i
+    return array[index], np.where(index)[0]
 
 
 def formula_mass(input_formula, mode='pos'):
