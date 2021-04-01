@@ -54,7 +54,7 @@ def tic_plot(mzml_scans, interactive=True, f_width=10, f_height=6):
     return
 
 
-def ms_plot(mzml_scans, time, interactive=False, search=False,
+def ms_spectrum(mzml_scans, time, interactive=False, search=False,
             f_width=10, f_height=6, source='MoNA'):
     '''
     Interactive spectrum plot with nearest retention time from the given scan
