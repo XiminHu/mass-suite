@@ -16,7 +16,7 @@ import setuptools
 #SETUP_REQUIRES += ['wheel'] if 'bdist_wheel' in sys.argv else []
 
 setuptools.setup(name = 'mass-suite',
-	  version = '1.0.3',
+	  version = '1.1.0',
       description = 'A package for HRMS data analysis',
       long_description = open('README.md', 'r').read(),
       long_description_content_type = 'text/markdown',

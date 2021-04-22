@@ -422,11 +422,16 @@ def mf_calculator(mass, mass_error = 10,
 
     jsondata = response.read()
     data = json.loads(jsondata)
-    dataframe = pd.DataFrame(data['results'])
-    dataframe.drop(columns='info', inplace=True)
-    dataframe.columns = ['Exact Mass', 'Formula',
-                         'Unsat', 'Mass error (Da)', 'Mass error (ppm)']
-    dataframe = dataframe[:maxresults].copy()
+    if len(data['results'])!=0:
+        dataframe = pd.DataFrame(data['results'])
+        dataframe.drop(columns='info', inplace=True)
+        dataframe.columns = ['Exact Mass', 'Formula',
+                             'Unsat', 'Mass error (Da)', 'Mass error (ppm)']
+        dataframe = dataframe[:maxresults].copy()
+    else: 
+        dataframe = pd.DataFrame(columns = ['Exact Mass', 'Formula',
+                             'Unsat', 'Mass error (Da)', 'Mass error (ppm)'])
+        dataframe.loc[0] = [np.nan,np.nan,np.nan,np.nan,np.nan]
     return dataframe
 
 
