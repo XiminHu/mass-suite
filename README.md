@@ -3,12 +3,8 @@
 [![Build Status](https://travis-ci.com/XiminHu/mass-suite.svg?branch=master)](https://travis-ci.com/XiminHu/mass-suite)
 [![Coverage Status](https://coveralls.io/repos/github/XiminHu/mass-suite/badge.svg?branch=master)](https://coveralls.io/github/XiminHu/mass-suite?branch=master)
 [![License](https://img.shields.io/github/license/XiminHu/mass-suite)](https://img.shields.io/github/license/XiminHu/mass-suite)
-[![Stars](https://img.shields.io/github/stars/XiminHu/mass-suite)](https://img.shields.io/github/stars/XiminHu/mass-suite)
-[![Forks](https://img.shields.io/github/forks/XiminHu/mass-suite)](https://img.shields.io/github/forks/XiminHu/mass-suite)
 
-[![Python](https://img.shields.io/pypi/pyversions/pandas)](https://img.shields.io/pypi/pyversions/pandas)
 [![Issues](https://img.shields.io/github/issues/XiminHu/mass-suite)](https://img.shields.io/github/issues/XiminHu/mass-suite)
-[![Dependencies](https://img.shields.io/librariesio/github/XiminHu/mass-suite)](https://img.shields.io/librariesio/github/XiminHu/mass-suite)
 [![File Size](https://img.shields.io/github/repo-size/XiminHu/mass-suite?color=pink)](https://img.shields.io/github/repo-size/XiminHu/mass-suite?color=pink)
 [![Last Commit](https://img.shields.io/github/last-commit/XiminHu/mass-suite)](https://img.shields.io/github/last-commit/XiminHu/mass-suite)
 
